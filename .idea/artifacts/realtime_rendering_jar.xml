@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="realtime_rendering:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/realtime_rendering_jar</output-path>
+    <root id="archive" name="realtime_rendering.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>
