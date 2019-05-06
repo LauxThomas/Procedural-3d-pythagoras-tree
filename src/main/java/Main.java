@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,17 +14,19 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL15.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glClear;
 import static org.lwjgl.opengl.GL15.glClearColor;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL20.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.GL_FLOAT;
+import static org.lwjgl.opengl.GL20.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL20.GL_TRUE;
-import static org.lwjgl.opengl.GL20.glDrawArrays;
+import static org.lwjgl.opengl.GL20.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL20.glDrawElements;
+import static org.lwjgl.opengl.GL20.glGenBuffers;
 import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -74,10 +77,9 @@ public class Main {
     private void render() {
         glUniform3f(uniColor, pulseColor, 0.0f, 0.0f);
         // Draw a triangle from the 3 vertices
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+//        glDrawArrays(GL_TRIANGLES, 0, 6);
         //use only 4 vertices instead of 6:
-//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
     }
@@ -111,14 +113,12 @@ public class Main {
 
 
         float[] vertices = {
-                //x,y,r,g,b,s,t
-                -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-                0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,// Top-right
-                0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+                //  Position  Color         Texcoords
+                -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
+                0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+                0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+                -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
 
-                0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,// Bottom-right
-                -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f // Bottom-left
-                - 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f  // Top-left
         };
         //<editor-fold desc="VAO Stuff">
         //Creating a VertexArrayObject
@@ -137,17 +137,17 @@ public class Main {
 
 
         //<editor-fold desc="EBO stuff">
-        //Creating a ElementBufferObject
-        int ebo = GL30.glGenBuffers();
         //Create Element Buffer Object:
-        float[] elements = {
+        int[] elements = {
                 0, 1, 2,
                 2, 3, 0
         };
-        FloatBuffer elementBuffer = BufferUtils.createFloatBuffer(elements.length);
+        //Creating a ElementBufferObject
+        IntBuffer elementBuffer = BufferUtils.createIntBuffer(elements.length);
         elementBuffer.put(elements).flip();
+
+        int ebo = glGenBuffers();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        //Send buffer to ebo
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW);
         //</editor-fold>
 
@@ -183,47 +183,30 @@ public class Main {
         //<editor-fold desc="Attrib Pointer Stuff">
         int posAttrib = glGetAttribLocation(shaderProgram, "position");
         glEnableVertexAttribArray(posAttrib);
-        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 8 * sizeOfFloat, 0);
+        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 7 * sizeOfFloat, 0);
 
         int colAttrib = glGetAttribLocation(shaderProgram, "color");
         glEnableVertexAttribArray(colAttrib);
-        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 8 * sizeOfFloat, 2 * sizeOfFloat);
+        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 7 * sizeOfFloat, 2 * sizeOfFloat);
 
-        int texAttrib = glGetAttribLocation(shaderProgram, "color");
+        int texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
         glEnableVertexAttribArray(texAttrib);
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 8 * sizeOfFloat, 5 * sizeOfFloat);
+        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 7 * sizeOfFloat, 5 * sizeOfFloat);
         //</editor-fold>
 
 
-        //<editor-fold desc="Texture Stuff">
-        /*
-        int tex = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D,tex);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        float[] color = { 1.0f, 0.0f, 0.0f, 1.0f };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
-        // Black/white checkerboard
-        float[] pixels = {
-                0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
-        };
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
-        */
-
-
+        //<editor-fold desc="newTextures">
+//        Texture texture = new Texture("sample.png");
+//        Texture texture = new Texture("bark.jpg");
+        Texture texture = new Texture("treebark.jpg");
+        int texUnit = 0;
+        int texUniform = glGetUniformLocation( shaderProgram, "tex" );
+        glUniform1i( texUniform, texUnit );
+        glActiveTexture( GL_TEXTURE0 + texUnit );
+        texture.bind();
         //</editor-fold>
 
 
-        //<editor-fold desc="newTexuteres">
-//        Texture tex = new Texture("tree_bark_texture.png");
-//        tex.bind();
-        //</editor-fold>
         uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
         glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
 
@@ -250,6 +233,8 @@ public class Main {
         //clear the window to be black:
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glEnable(GL_TEXTURE_2D);
 
     }
 

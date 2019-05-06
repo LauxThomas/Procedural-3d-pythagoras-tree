@@ -1,9 +1,14 @@
 import org.lwjgl.BufferUtils;
+import org.lwjgl.stb.STBImage;
+import org.newdawn.slick.opengl.TextureLoader;
+import org.newdawn.slick.util.ResourceLoader;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.stb.STBImage.stbi_image_free;
 import static org.lwjgl.stb.STBImage.stbi_load;
 
@@ -19,14 +24,37 @@ public class Texture {
 
         ByteBuffer data = stbi_load("./res/" + filename, width, height, comp, 4);
 
+        if (STBImage.stbi_failure_reason() != null||data==null) {
+            System.out.println("stbi Error: " + STBImage.stbi_failure_reason());
+        }
+        try {
+            // load texture from PNG file
+            org.newdawn.slick.opengl.Texture texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("./res/sample.png"));
+
+            System.out.println("Texture loaded: "+texture);
+            System.out.println(">> Image width: "+texture.getImageWidth());
+            System.out.println(">> Image height: "+texture.getImageHeight());
+            System.out.println(">> Texture width: "+texture.getTextureWidth());
+            System.out.println(">> Texture height: "+texture.getTextureHeight());
+            System.out.println(">> Texture ID: "+texture.getTextureID());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         id = glGenTextures();
         this.width = width.get();
         this.height = height.get();
 
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.width, this.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+
         stbi_image_free(data);
     }
 
