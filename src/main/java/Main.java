@@ -1,3 +1,4 @@
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
@@ -42,6 +43,7 @@ public class Main {
             render();
             if (glfwWindowShouldClose(window)) {
                 running = false;
+                glfwTerminate();
 
             }
         }
@@ -53,10 +55,6 @@ public class Main {
     }
 
     private void render() {
-        // Clear the screen to black
-        glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
         // Draw a triangle from the 3 vertices
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -99,12 +97,16 @@ public class Main {
         int vbo = GL15.glGenBuffers();
         float[] vertices = {
                 0.0f, 0.5f, // Vertex 1 (X, Y)
-                0.5f, -0.5f, // Vertex 2 (X, Y)
-                -0.5f, -0.5f  // Vertex 3 (X, Y)
+                0.5f, -0.5f,  // Vertex 2 (X, Y)
+                -0.5f, -0.5f // Vertex 3 (X, Y)
         };
-        FloatBuffer buffer = FloatBuffer.wrap(vertices);
+        //Create vertex buffer
+        FloatBuffer verticeBuffer= BufferUtils.createFloatBuffer(vertices.length);
+        verticeBuffer.put(vertices).flip();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
+        //Send vertice buffer to VBO
+        glBufferData(GL_ARRAY_BUFFER, verticeBuffer, GL_STATIC_DRAW);
+
 
         //Create Shaders:
         String fragmentSource = createFragmentShader();
@@ -136,6 +138,10 @@ public class Main {
         //how the data for that input is retrieved from the array:
         glEnableVertexAttribArray(posAttrib);
         glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 0, 0);
+
+//        System.out.println(vertexSource);
+//        System.out.println("---------------");
+//        System.out.println(fragmentSource);
 
     }
 
