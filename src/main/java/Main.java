@@ -59,7 +59,7 @@ public class Main {
 
     private void update() {
         glfwPollEvents();
-//        calculatePulseColor();
+        calculatePulseColor();
     }
 
     private void calculatePulseColor() {
@@ -77,7 +77,7 @@ public class Main {
     }
 
     private void render() {
-        glUniform3f(uniColor, pulseColor, 0.0f, 0.0f);
+        glUniform3f(uniColor, pulseColor, 1-pulseColor, 0.25f+pulseColor/2);
         // Draw a triangle from the 3 vertices
 //        glDrawArrays(GL_TRIANGLES, 0, 6);
         //use only 4 vertices instead of 6:
@@ -198,8 +198,6 @@ public class Main {
 
 
         //<editor-fold desc="newTextures">
-//        Texture texture = new Texture("sample.png");
-//        Texture texture = new Texture("bark.jpg");
         Texture texture = new Texture("treebark.jpg");
         int texUnit = 0;
         int texUniform = glGetUniformLocation( shaderProgram, "tex" );
