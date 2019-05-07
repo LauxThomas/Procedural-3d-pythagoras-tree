@@ -22,10 +22,12 @@ import static org.lwjgl.opengl.GL15.glClear;
 import static org.lwjgl.opengl.GL15.glClearColor;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.GL_FLOAT;
+import static org.lwjgl.opengl.GL20.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL20.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL20.GL_TRUE;
 import static org.lwjgl.opengl.GL20.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL20.glDrawElements;
+import static org.lwjgl.opengl.GL20.glEnable;
 import static org.lwjgl.opengl.GL20.glGenBuffers;
 import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -139,8 +141,8 @@ public class Main {
         //<editor-fold desc="EBO stuff">
         //Create Element Buffer Object:
         int[] elements = {
-                0, 1, 2,
-                2, 3, 0
+                0, 2, 1,
+                2, 0, 3
         };
         //Creating a ElementBufferObject
         IntBuffer elementBuffer = BufferUtils.createIntBuffer(elements.length);
@@ -202,7 +204,7 @@ public class Main {
         int texUnit = 0;
         int texUniform = glGetUniformLocation( shaderProgram, "tex" );
         glUniform1i( texUniform, texUnit );
-        glActiveTexture( GL_TEXTURE0 + texUnit );
+        glActiveTexture( GL_TEXTURE0 + 5);  //+5!!!
         texture.bind();
         //</editor-fold>
 

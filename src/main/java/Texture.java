@@ -1,9 +1,6 @@
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
-import org.newdawn.slick.opengl.TextureLoader;
-import org.newdawn.slick.util.ResourceLoader;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -27,19 +24,9 @@ public class Texture {
         if (STBImage.stbi_failure_reason() != null||data==null) {
             System.out.println("stbi Error: " + STBImage.stbi_failure_reason());
         }
-        try {
-            // load texture from PNG file
-            org.newdawn.slick.opengl.Texture texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("./res/sample.png"));
 
-            System.out.println("Texture loaded: "+texture);
-            System.out.println(">> Image width: "+texture.getImageWidth());
-            System.out.println(">> Image height: "+texture.getImageHeight());
-            System.out.println(">> Texture width: "+texture.getTextureWidth());
-            System.out.println(">> Texture height: "+texture.getTextureHeight());
-            System.out.println(">> Texture ID: "+texture.getTextureID());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        // A byte array of 4x4 RBG values
 
         id = glGenTextures();
         this.width = width.get();
