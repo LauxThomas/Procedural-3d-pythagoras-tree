@@ -26,31 +26,40 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.GL_FLOAT;
 import static org.lwjgl.opengl.GL20.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL20.GL_TEXTURE_3D;
+import static org.lwjgl.opengl.GL20.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL20.GL_TRUE;
+import static org.lwjgl.opengl.GL20.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL20.glActiveTexture;
+import static org.lwjgl.opengl.GL20.glDrawElements;
 import static org.lwjgl.opengl.GL20.glEnable;
 import static org.lwjgl.opengl.GL20.glGenBuffers;
 import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Main {
+public class Main{
 
     private boolean running; //game runs until running is set to false
     private long window;
     private int uniColor;
-    private float pulseColor = 0;
+    private float pulseColor = 1;
     private boolean pulseUp = true;
     private final int sizeOfFloat = 4;
-    int[] elements;
+    private int[] elements;
     private int shaderProgram;
     private Matrix4f trans;
     private Matrix4f proj;
     private Matrix4f view;
+    private int test =0;
+    private boolean testUp = true;
 
     public Main() {
         running = true;
         init();
         while (running) {
+            //TESTING AREA:
+
+
+            //TESTING AREA END
             update();
             render();
             if (glfwWindowShouldClose(window)) {
@@ -73,25 +82,25 @@ public class Main {
     }
 
     private void calculateProjection() {
-        proj = new Matrix4f().perspective(1, 1, 4, -4);
+        proj = new Matrix4f().perspective(1, 1, 3, -3);
 
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
         proj.get(fb);
         int uniTrans = glGetUniformLocation(shaderProgram, "proj");
-        glUniformMatrix4fv(uniTrans,false,fb);
+        glUniformMatrix4fv(uniTrans, false, fb);
     }
 
     private void calculateView() {
         view = new Matrix4f().lookAt(
-                new Vector3f(0.0f, 0.0f, 5f),   //eye
+                new Vector3f(0.0f, 0.0f, 4f),       //eye
                 new Vector3f(0, 0, 0),            //center
-                new Vector3f(0.0f, 0.5f, 0.0f)    //up
+                new Vector3f(0.0f, 1f, 0.0f)    //up
         );
 
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
         view.get(fb);
         int uniTrans = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(uniTrans,false,fb);
+        glUniformMatrix4fv(uniTrans, false, fb);
 
     }
 
@@ -101,7 +110,7 @@ public class Main {
         trans.get(fb);
 
         int uniTrans = glGetUniformLocation(shaderProgram, "model");
-        glUniformMatrix4fv(uniTrans,false,fb);
+        glUniformMatrix4fv(uniTrans, false, fb);
     }
 
     private void calculatePulseColor() {
@@ -121,14 +130,32 @@ public class Main {
     private void render() {
         clearDisplay();
 
-        glUniform3f(uniColor, pulseColor, 1 - pulseColor, 0.25f + 0.5f * pulseColor);
+        glUniform3f(uniColor, pulseColor, pulseColor,  pulseColor);
         actuallyDraw();
 
     }
 
     private void actuallyDraw() {
+//        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, test);
+//        System.out.println(test);
+//        calculateTest();
+        int triangles = 3;
         glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
+    }
+
+    private void calculateTest() {
+        if (testUp) {
+            test++;
+            if (test >= 55) {
+                testUp = false;
+            }
+        } else {
+            test--;
+            if (test <= 0.0f) {
+                testUp = true;
+            }
+        }
     }
 
     private void clearDisplay() {
@@ -166,15 +193,18 @@ public class Main {
 
         float[] model = {
                 //  Position3  Color3         Texcoords2
+                //Front:
                 -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
                 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
                 0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
                 -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // Bottom-left
+                //Back:
+                -0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
+                0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+                0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+                -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
+                //testing:
 
-                -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-                0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-                0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-                -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // Bottom-left
 
 
         };
@@ -196,20 +226,38 @@ public class Main {
 
         //<editor-fold desc="EBO stuff">
         //Create Element Buffer Object:
+
+        //rotated:
         elements = new int[]{
-                0, 3, 1,
-                1, 3, 2,    //front pane
-                1, 2, 5,
-                5, 2, 6,    //back Pane
-                4, 7, 0,
-                0, 7, 3,    //left pane
-                0, 1, 4,
-                4, 1, 5,    //top Pane
-                7, 6, 3,
-                3, 6, 2,    //bottom Pane
-                5, 6, 4,
-                4, 6, 7     //right Pane
+                0,3,1,
+                1,3,2,
+                5,6,4,
+                4,6,7,
+                4,0,5,
+                5,0,1,
+                3,7,2,
+                2,7,1,
+                4,7,0,
+                0,7,3,
+                1,2,5,
+                5,2,6
         };
+
+        //static:
+//        elements = new int[]{
+//                0,3,1,
+//                1,3,2,
+//                4,7,6,
+//                4,6,5,
+//                4,0,2,
+//                4,1,5,
+//                7,3,6,
+//                6,3,2,
+//                0,3,7,
+//                0,7,4,
+//                1,2,6,
+//                1,6,5
+//        };
         //Creating a ElementBufferObject
         IntBuffer elementBuffer = BufferUtils.createIntBuffer(elements.length);
         elementBuffer.put(elements).flip();
@@ -276,8 +324,6 @@ public class Main {
         trans = new Matrix4f().identity();
         proj = new Matrix4f().identity();
         view = new Matrix4f().identity();
-
-
 
 
         uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
