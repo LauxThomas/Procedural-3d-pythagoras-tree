@@ -11,5 +11,5 @@ uniform vec3 triangleColor;
 void main()
 {
     outColor = texture(tex, Texcoord) * vec4(Color, 1.0) * vec4(triangleColor, 1.0);
-    //outColor = vec4(Color, 1.0)+ vec4(0.2, 0.2, 0.2, 0.2);
+//    outColor = vec4(Color, 1.0)+ vec4(0.2, 0.2, 0.2, 0.2);
 }
