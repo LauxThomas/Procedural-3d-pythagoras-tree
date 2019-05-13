@@ -38,27 +38,26 @@ import static org.lwjgl.opengl.GL20.glGenBuffers;
 import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Main{
+public class Main {
 
-    private boolean running; //game runs until running is set to false
     private long window;
     private int uniColor;
     private float pulseColor = 1;
     private boolean pulseUp = true;
-    private final int sizeOfFloat = 4;
     private int[] elements;
     private int shaderProgram;
     private Matrix4f trans;
     private Matrix4f proj;
     private Matrix4f view;
-    private int test =0;
+    private int test = 0;
     private boolean testUp = true;
 
     public Main() {
-        running = true;
+        //game runs until running is set to false
+        boolean running = true;
         init();
         calculateTest();
-        while (running) {
+        while (true) {
             //TESTING AREA:
 
 
@@ -110,7 +109,7 @@ public class Main{
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
-        trans.rotate((float) Math.toRadians(1),0f,1f,0f);
+        trans.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
 
         trans.get(fb);
 
@@ -135,7 +134,7 @@ public class Main{
     private void render() {
         clearDisplay();
 
-        glUniform3f(uniColor, pulseColor, pulseColor,  pulseColor);
+        glUniform3f(uniColor, pulseColor, pulseColor, pulseColor);
         actuallyDraw();
 
     }
@@ -145,7 +144,7 @@ public class Main{
 //        System.out.println(test);
 //        calculateTest();
         int triangles = 3;
-        glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0*triangles);
+        glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0 * triangles);
         glfwSwapBuffers(window);
     }
 
@@ -197,25 +196,34 @@ public class Main{
         }
         initializeWindow();
 
+//        //cube Model:
+//        float[] model = {
+//                //  Position3  Color3         Texcoords2
+//                //Front:
+//                -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
+//                0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+//                0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+//                -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // Bottom-left
+//                //Back:
+//                -0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
+//                0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+//                0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+//                -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
+//
+//        };
 
+        //testing:
+        //tetraeder Model
         float[] model = {
                 //  Position3  Color3         Texcoords2
-                //Front:
-                -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-                0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-                0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-                -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // Bottom-left
-                //Back:
-                -0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-                0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-                0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-                -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
-                //testing:
-
-
+                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //
+                0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //
+                0.0f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //
+                0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f //
 
 
         };
+
         //<editor-fold desc="VAO Stuff">
         //Creating a VertexArrayObject
         int vao = GL30.glGenVertexArrays();
@@ -235,20 +243,28 @@ public class Main{
         //<editor-fold desc="EBO stuff">
         //Create Element Buffer Object:
 
-        //rotated:
+//        //cube ebo:
+//        elements = new int[]{
+//                0, 3, 1,
+//                1, 3, 2,  //front
+//                4, 7, 5,
+//                5, 7, 6,  //back
+//                4, 0, 1,
+//                4, 1, 5,  //top
+//                7, 3, 2,
+//                7, 2, 6,  //bottom
+//                0, 3, 7,
+//                0, 7, 4,  //left
+//                1, 2, 6,
+//                1, 6, 5   //right
+//        };
+
+        //tetraeder ebo:
         elements = new int[]{
-                0,3,1,
-                1,3,2,  //front
-                4,7,5,
-                5,7,6,  //back
-                4,0,1,
-                4,1,5,  //top
-                7,3,2,
-                7,2,6,  //bottom
-                0,3,7,
-                0,7,4,  //left
-                1,2,6,
-                1,6,5   //right
+                0,1,2,
+                0,1,3,
+                0,3,2,
+                1,2,3
         };
         //Creating a ElementBufferObject
         IntBuffer elementBuffer = BufferUtils.createIntBuffer(elements.length);
@@ -291,6 +307,7 @@ public class Main{
         //<editor-fold desc="Attrib Pointer Stuff">
         int posAttrib = glGetAttribLocation(shaderProgram, "position");
         glEnableVertexAttribArray(posAttrib);
+        int sizeOfFloat = 4;
         glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 8 * sizeOfFloat, 0);
 
         int colAttrib = glGetAttribLocation(shaderProgram, "color");
@@ -315,7 +332,7 @@ public class Main{
         //<editor-fold desc="MVP creation">
         //create MVP:
         trans = new Matrix4f().identity();
-        trans.rotate((float) Math.toRadians(30),1f,0f,0);
+        trans.rotate((float) Math.toRadians(30), 1f, 0f, 0);
         proj = new Matrix4f().identity();
         view = new Matrix4f().identity();
         //</editor-fold>
@@ -346,7 +363,6 @@ public class Main{
 
 
         glEnable(GL_TEXTURE_3D);
-
 
 
     }
