@@ -11,6 +11,8 @@ import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
@@ -55,6 +57,7 @@ public class Main{
     public Main() {
         running = true;
         init();
+        calculateTest();
         while (running) {
             //TESTING AREA:
 
@@ -65,6 +68,7 @@ public class Main{
             if (glfwWindowShouldClose(window)) {
                 running = false;
                 glfwTerminate();
+                System.exit(1);
                 break;
 
             }
@@ -92,9 +96,9 @@ public class Main{
 
     private void calculateView() {
         view = new Matrix4f().lookAt(
-                new Vector3f(0.0f, 0.0f, 4f),       //eye
+                new Vector3f(0.0f, 0.0f, 7f),       //eye
                 new Vector3f(0, 0, 0),            //center
-                new Vector3f(0.0f, 1f, 0.0f)    //up
+                new Vector3f(0.0f, 2f, 0f)    //up
         );
 
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
@@ -106,7 +110,8 @@ public class Main{
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
-        trans.rotate((float) Math.toRadians(1),1f,0.5f,0.25f);
+        trans.rotate((float) Math.toRadians(1),0f,1f,0f);
+
         trans.get(fb);
 
         int uniTrans = glGetUniformLocation(shaderProgram, "model");
@@ -140,27 +145,27 @@ public class Main{
 //        System.out.println(test);
 //        calculateTest();
         int triangles = 3;
-        glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0*triangles);
         glfwSwapBuffers(window);
     }
 
     private void calculateTest() {
-        if (testUp) {
-            test++;
-            if (test >= 55) {
-                testUp = false;
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                test++;
+                System.out.println(test);
             }
-        } else {
-            test--;
-            if (test <= 0.0f) {
-                testUp = true;
-            }
-        }
+        }, 0, 500); // 1000 = 1 Sek.
     }
 
     private void clearDisplay() {
+        //clear the window to be black:
+        glEnable(GL_DEPTH_TEST);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     private String createFragmentShader() {
@@ -207,6 +212,7 @@ public class Main{
 
 
 
+
         };
         //<editor-fold desc="VAO Stuff">
         //Creating a VertexArrayObject
@@ -231,18 +237,17 @@ public class Main{
         elements = new int[]{
                 0,3,1,
                 1,3,2,
-                5,6,4,
-                4,6,7,
-                4,0,5,
-                5,0,1,
-                3,7,2,
-                2,7,1,
-                4,7,0,
-                0,7,3,
-                1,2,5,
-                5,2,6
+                4,7,5,
+                5,7,6,
+                4,0,1,
+                4,1,5,
+                7,3,2,
+                7,2,6,
+                0,3,7,
+                0,7,4,
+                1,2,6,
+                1,6,5
         };
-
         //static:
 //        elements = new int[]{
 //                0,3,1,
@@ -322,6 +327,7 @@ public class Main{
 
         //create MVP:
         trans = new Matrix4f().identity();
+        trans.rotate((float) Math.toRadians(45),1f,1f,0);
         proj = new Matrix4f().identity();
         view = new Matrix4f().identity();
 
@@ -349,11 +355,10 @@ public class Main{
         createCapabilities();
         glfwShowWindow(window);
 
-        //clear the window to be black:
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         glEnable(GL_TEXTURE_3D);
+
+
 
     }
 

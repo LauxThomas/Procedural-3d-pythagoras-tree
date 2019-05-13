@@ -1,5 +1,5 @@
 #version 150 core
-    in vec2 position;
+    in vec3 position;
     in vec3 color;
     in vec2 texcoord;
     uniform mat4 model;
@@ -11,6 +11,5 @@
     {
         Color = color;
         Texcoord = texcoord;
-        gl_Position = proj * view * model * vec4(position, 0.0, 1.0);
-//        gl_Position = view * model * vec4(position, 0.0, 1.0);
+        gl_Position = proj * view * model * vec4(position, 1.0);
     }
