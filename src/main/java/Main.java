@@ -162,9 +162,11 @@ public class Main{
     }
 
     private void clearDisplay() {
-        //clear the window to be black:
         glEnable(GL_DEPTH_TEST);
+        //clear the window to be black:
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        //clear the window to be white:
+//        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
@@ -236,33 +238,18 @@ public class Main{
         //rotated:
         elements = new int[]{
                 0,3,1,
-                1,3,2,
+                1,3,2,  //front
                 4,7,5,
-                5,7,6,
+                5,7,6,  //back
                 4,0,1,
-                4,1,5,
+                4,1,5,  //top
                 7,3,2,
-                7,2,6,
+                7,2,6,  //bottom
                 0,3,7,
-                0,7,4,
+                0,7,4,  //left
                 1,2,6,
-                1,6,5
+                1,6,5   //right
         };
-        //static:
-//        elements = new int[]{
-//                0,3,1,
-//                1,3,2,
-//                4,7,6,
-//                4,6,5,
-//                4,0,2,
-//                4,1,5,
-//                7,3,6,
-//                6,3,2,
-//                0,3,7,
-//                0,7,4,
-//                1,2,6,
-//                1,6,5
-//        };
         //Creating a ElementBufferObject
         IntBuffer elementBuffer = BufferUtils.createIntBuffer(elements.length);
         elementBuffer.put(elements).flip();
@@ -316,7 +303,7 @@ public class Main{
         //</editor-fold>
 
 
-        //<editor-fold desc="newTextures">
+        //<editor-fold desc="Texture Stuff">
         Texture texture = new Texture("treebark.jpg");
         int texUnit = 0;
         int texUniform = glGetUniformLocation(shaderProgram, "tex");
@@ -325,11 +312,13 @@ public class Main{
         texture.bind();
         //</editor-fold>
 
+        //<editor-fold desc="MVP creation">
         //create MVP:
         trans = new Matrix4f().identity();
-        trans.rotate((float) Math.toRadians(45),1f,1f,0);
+        trans.rotate((float) Math.toRadians(30),1f,0f,0);
         proj = new Matrix4f().identity();
         view = new Matrix4f().identity();
+        //</editor-fold>
 
 
         uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
