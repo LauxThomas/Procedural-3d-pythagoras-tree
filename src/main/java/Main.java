@@ -25,17 +25,17 @@ import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glClear;
 import static org.lwjgl.opengl.GL15.glClearColor;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL20.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL20.GL_FLOAT;
 import static org.lwjgl.opengl.GL20.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL20.GL_TEXTURE_3D;
-import static org.lwjgl.opengl.GL20.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL20.GL_TRUE;
-import static org.lwjgl.opengl.GL20.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL20.glActiveTexture;
-import static org.lwjgl.opengl.GL20.glDrawElements;
 import static org.lwjgl.opengl.GL20.glEnable;
 import static org.lwjgl.opengl.GL20.glGenBuffers;
 import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
@@ -56,7 +56,7 @@ public class Main {
         //game runs until running is set to false
         boolean running = true;
         init();
-        calculateTest();
+//        calculateTest();
         while (true) {
             //TESTING AREA:
 
@@ -109,7 +109,7 @@ public class Main {
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
-        trans.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
+//        trans.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
 
         trans.get(fb);
 
@@ -140,11 +140,11 @@ public class Main {
     }
 
     private void actuallyDraw() {
-//        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, test);
 //        System.out.println(test);
 //        calculateTest();
         int triangles = 3;
-        glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0 * triangles);
+//        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0*triangles);
+        glDrawElements(GL_POINTS, elements.length, GL_UNSIGNED_INT, 0 * triangles);
         glfwSwapBuffers(window);
     }
 
@@ -189,6 +189,16 @@ public class Main {
         return null;
     }
 
+    private String createGeometrySahder() {
+        try {
+            return new String(Files.readAllBytes(Paths.get("src/main/java/screen.geom")), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("couldn't create geometryShader");
+        }
+        return null;
+    }
+
     private void init() {
 
         if (!glfwInit()) {
@@ -216,10 +226,10 @@ public class Main {
         //tetraeder Model
         float[] model = {
                 //  Position3  Color3         Texcoords2
-                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //
-                0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //
-                0.0f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //
-                0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f //
+                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //vl
+                0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   //vr
+                0.0f, -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f   //h
+
 
 
         };
@@ -261,10 +271,7 @@ public class Main {
 
         //tetraeder ebo:
         elements = new int[]{
-                0,1,2,
-                0,1,3,
-                0,3,2,
-                1,2,3
+                0,1,2
         };
         //Creating a ElementBufferObject
         IntBuffer elementBuffer = BufferUtils.createIntBuffer(elements.length);
@@ -278,8 +285,9 @@ public class Main {
 
         //<editor-fold desc="Shader Stuff">
         //Create Shaders:
-        String fragmentSource = createFragmentShader();
         String vertexSource = createVertexShader();
+        String geometrySource = createGeometrySahder();
+        String fragmentSource = createFragmentShader();
         //Compile vertexShader:
         int vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, vertexSource);
@@ -294,10 +302,20 @@ public class Main {
         if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) != GL_TRUE) {
             System.err.println("couldn't compile fragmentShader: \n" + glGetShaderInfoLog(fragmentShader, 512));
         }
-        // Link the vertex and fragment shader into a shader program
+        //Compile geometryShader:
+        int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+        glShaderSource(geometryShader, geometrySource);
+        glCompileShader(geometryShader);
+        if (glGetShaderi(geometryShader, GL_COMPILE_STATUS) != GL_TRUE) {
+            System.err.println("couldn't compile geometryShader: \n" + glGetShaderInfoLog(geometryShader, 512));
+        }
+        // Link the vertex, geometry and fragment shader into a shader program
         shaderProgram = glCreateProgram();
+
         glAttachShader(shaderProgram, vertexShader);
+        glAttachShader(shaderProgram, geometryShader);
         glAttachShader(shaderProgram, fragmentShader);
+
         glBindFragDataLocation(shaderProgram, 0, "outColor");
         glLinkProgram(shaderProgram);
         glUseProgram(shaderProgram);
