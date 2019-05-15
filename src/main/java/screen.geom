@@ -1,15 +1,18 @@
 #version 330 core
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 20) out;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 proj;
 
 void constructTreeTrunk(vec4 position)
 {
-    vec4 v0 = position+ vec4(-1, 0, -1, 0); //uhl
-    vec4 v1 = position+ vec4(1, 0, -1, 0);  //uv
-    vec4 v2 = position+ vec4(0, 0, 1, 0);   //uhr
-    vec4 v3 = position+ vec4(-1, 2, -1, 0)*0.8; //ohl
-    vec4 v4 = position+ vec4(1, 2, -1, 0)*0.8;  //ov
-    vec4 v5 = position+ vec4(0, 2, 1, 0)*0.8;   //ohr
+    vec4 v0 = proj*(view*(model*(position+ vec4(-1, 0, -1, 0))));//uhl
+    vec4 v1 = proj*(view*(model*(position+ vec4(1, 0, -1, 0))));//uv
+    vec4 v2 = proj*(view*(model*(position+ vec4(0, 0, 1, 0))));//uhr
+    vec4 v3 = proj*(view*(model*(position+ vec4(-1, 2, -1, 0)*0.8)));//ohl
+    vec4 v4 = proj*(view*(model*(position+ vec4(1, 2, -1, 0)*0.8)));//ov
+    vec4 v5 = proj*(view*(model*(position+ vec4(0, 2, 1, 0)*0.8)));//ohr
 
     //Bottom Pane
     gl_Position = v0;

@@ -51,6 +51,7 @@ public class Main {
     private Matrix4f view;
     private int test = 0;
     private boolean testUp = true;
+    private boolean rotateObject = true;
 
     public Main() {
         //game runs until running is set to false
@@ -109,7 +110,9 @@ public class Main {
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
+        if (rotateObject){
         trans.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
+        }
 
         trans.get(fb);
 
@@ -189,7 +192,7 @@ public class Main {
         return null;
     }
 
-    private String createGeometrySahder() {
+    private String createGeometryShader() {
         try {
             return new String(Files.readAllBytes(Paths.get("src/main/java/screen.geom")), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -286,7 +289,7 @@ public class Main {
         //<editor-fold desc="Shader Stuff">
         //Create Shaders:
         String vertexSource = createVertexShader();
-        String geometrySource = createGeometrySahder();
+        String geometrySource = createGeometryShader();
         String fragmentSource = createFragmentShader();
         //Compile vertexShader:
         int vertexShader = glCreateShader(GL_VERTEX_SHADER);
