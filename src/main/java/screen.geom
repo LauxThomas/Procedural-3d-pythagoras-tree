@@ -1,9 +1,14 @@
 #version 330 core
-layout (triangles) in;
+layout (points) in;
 layout (triangle_strip, max_vertices = 20) out;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
+in vec3 outColor[];
+in vec2 outTexcoord[];
+out vec3 fragmentColor;
+out vec2 fragmentTextureCoord;
+
 
 void constructTreeTrunk(vec4 position)
 {
@@ -86,5 +91,7 @@ void constructTreeTrunk(vec4 position)
 }
 
 void main() {
+    fragmentColor = outColor[0];
+    fragmentTextureCoord = outTexcoord[0];
     constructTreeTrunk(gl_in[0].gl_Position);
 }

@@ -1,9 +1,15 @@
 #version 330 core
+in vec3 fragmentColor;
+in vec2 fragmentTextureCoord;
 out vec4 FragColor;
+uniform vec3 triangleColor;
+uniform sampler2D tex;
+
 
 void main()
 {
-    FragColor = vec4(1.0, 0.0, 0.5, 0.5);
+//    FragColor = vec4(fragmentColor, 1.0f)*vec4(triangleColor,1.0f)*texture(tex, fragmentTextureCoord);
+    FragColor = texture(tex, fragmentTextureCoord) * vec4(triangleColor, 1.0);
 }
 
 //in vec3 Color;
@@ -11,8 +17,6 @@ void main()
 //
 //out vec4 outColor;
 //
-//uniform sampler2D tex;
-//uniform vec3 triangleColor;
 //
 //void main()
 //{

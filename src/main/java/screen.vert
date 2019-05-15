@@ -5,11 +5,13 @@
     uniform mat4 model;
     uniform mat4 view;
     uniform mat4 proj;
-    out vec3 Color;
-    out vec2 Texcoord;
+    out vec3 outColor;
+    out vec2 outTexcoord;
+
+
     void main()
     {
-        Color = color;
-        Texcoord = texcoord;
+        outColor=color;
+        outTexcoord = texcoord;
         gl_Position =vec4(position, 1.0);
     }
