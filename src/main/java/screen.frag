@@ -8,7 +8,7 @@ uniform sampler2D tex;
 
 void main()
 {
-//    FragColor = vec4(fragmentColor, 1.0f)*vec4(triangleColor,1.0f)*texture(tex, fragmentTextureCoord);
+//    FragColor = texture(tex, fragmentTextureCoord);
     FragColor = texture(tex, fragmentTextureCoord) * vec4(triangleColor, 1.0);
 }
 

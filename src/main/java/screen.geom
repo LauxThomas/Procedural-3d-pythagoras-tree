@@ -1,5 +1,5 @@
 #version 330 core
-layout (points) in;
+layout (triangles) in;
 layout (triangle_strip, max_vertices = 20) out;
 uniform mat4 model;
 uniform mat4 view;
@@ -90,8 +90,17 @@ void constructTreeTrunk(vec4 position)
 
 }
 
-void main() {
+void passColorAndTexture(){
     fragmentColor = outColor[0];
     fragmentTextureCoord = outTexcoord[0];
+}
+
+void constructNewTetraeder(){
+
+}
+
+void main() {
+    passColorAndTexture();
     constructTreeTrunk(gl_in[0].gl_Position);
+    constructNewTetraeder();
 }

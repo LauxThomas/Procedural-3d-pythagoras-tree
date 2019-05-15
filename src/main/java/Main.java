@@ -78,7 +78,7 @@ public class Main {
 
     private void update() {
         glfwPollEvents();
-//        calculatePulseColor();
+        calculatePulseColor();
 
         calculateModel();
         calculateView();
@@ -137,17 +137,15 @@ public class Main {
     private void render() {
         clearDisplay();
 
-        glUniform3f(uniColor, pulseColor, pulseColor, pulseColor);
+        glUniform3f(uniColor, pulseColor, 1-pulseColor, 0.25f+0.5f*pulseColor);
         actuallyDraw();
 
     }
 
     private void actuallyDraw() {
-//        System.out.println(test);
 //        calculateTest();
         int triangles = 3;
-//        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0*triangles);
-        glDrawElements(GL_POINTS, elements.length, GL_UNSIGNED_INT, 0 * triangles);
+        glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, 0 * triangles);
         glfwSwapBuffers(window);
     }
 
@@ -230,8 +228,8 @@ public class Main {
         float[] model = {
                 //  Position3  Color3         Texcoords2
                 -0.5f, 0f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //vl
-                0.5f, 0f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   //vr
-                0.0f, 0f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f   //h
+                0.5f, 0f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   //vr
+                0.0f, 0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f   //h
 
 
 
