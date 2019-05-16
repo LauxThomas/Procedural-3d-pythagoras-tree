@@ -1,6 +1,6 @@
 #version 330 core
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 20) out;
+layout (triangle_strip, max_vertices = 32) out;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
@@ -18,6 +18,7 @@ void constructTreeTrunk(vec4 position)
     vec4 v3 = proj*(view*(model*(position+ vec4(-1, 2, -1, 0)*0.8)));//ohl
     vec4 v4 = proj*(view*(model*(position+ vec4(1, 2, -1, 0)*0.8)));//ov
     vec4 v5 = proj*(view*(model*(position+ vec4(0, 2, 1, 0)*0.8)));//ohr
+    vec4 v6 = proj*(view*(model*(position+ vec4(0, 4, 0, 0)*0.6)));//tip
 
     //Bottom Pane
     gl_Position = v0;
@@ -87,6 +88,32 @@ void constructTreeTrunk(vec4 position)
     gl_Position = v0;
     EmitVertex();
     EndPrimitive();
+
+    //tip vl
+    gl_Position = v3;
+    EmitVertex();
+    gl_Position = v4;
+    EmitVertex();
+    gl_Position = v6;
+    EmitVertex();
+    EndPrimitive();
+    //tip vr
+    gl_Position = v4;
+    EmitVertex();
+    gl_Position = v5;
+    EmitVertex();
+    gl_Position = v6;
+    EmitVertex();
+    EndPrimitive();
+    //tip h
+    gl_Position = v3;
+    EmitVertex();
+    gl_Position = v5;
+    EmitVertex();
+    gl_Position = v6;
+    EmitVertex();
+    EndPrimitive();
+
 
 }
 
