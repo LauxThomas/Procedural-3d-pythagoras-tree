@@ -1,14 +1,30 @@
 #version 330 core
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 32) out;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
-in vec3 outColor[];
-in vec2 outTexcoord[];
-out vec3 fragmentColor;
-out vec2 fragmentTextureCoord;
 
+in geoValue{
+    vec3 pos;
+    vec3 normal;
+    vec3 color;
+    vec3 texCoords;
+    float length;
+} gs_in[];
+out DataBlock{
+    vec3 pos;
+    vec3 normal;
+    vec3 color;
+    vec3 texCoords;
+    float length;
+} outValue;
+
+void passColorAndTexture(){
+    outValue.color = gs_in[0].color;
+    outValue.texCoords = gs_in[0].texCoords;
+}
 
 void constructTreeTrunk(vec4 position)
 {
@@ -117,10 +133,7 @@ void constructTreeTrunk(vec4 position)
 
 }
 
-void passColorAndTexture(){
-    fragmentColor = outColor[0];
-    fragmentTextureCoord = outTexcoord[0];
-}
+
 
 void constructNewTetraeder(){
 
@@ -128,6 +141,6 @@ void constructNewTetraeder(){
 
 void main() {
     passColorAndTexture();
-    constructTreeTrunk(gl_in[0].gl_Position);
+    constructTreeTrunk(gl_in[0].gl_Position);//TODO: positionen zurückgeben und in vbo abspeichern. Dann rekursiv starten
     constructNewTetraeder();
 }

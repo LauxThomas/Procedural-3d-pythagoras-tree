@@ -1,19 +1,23 @@
 #version 330
-    in vec3 pos;
-    in vec3 normal;
-    in vec3 color;
-    in vec2 texcoord;
-    in float length;
-    uniform mat4 model;
-    uniform mat4 view;
-    uniform mat4 proj;
-    out vec3 outColor;
-    out vec2 outTexcoord;
+in vec3 pos;
+in vec3 normal;
+in vec3 color;
+in vec2 texCoords;
+in float length;
+out geoValue{
+    vec3 pos;
+    vec3 normal;
+    vec3 color;
+    vec2 texCoords;
+    float length;
+} vs_out;
 
 
-    void main()
-    {
-        outColor=color;
-        outTexcoord = texcoord;
-        gl_Position =vec4(pos, 1.0);
-    }
+void main()
+{
+    vs_out.pos = pos;
+    vs_out.normal = normal;
+    vs_out.color = color;
+    vs_out.texCoords = texCoords;
+    vs_out.length = length;
+}
