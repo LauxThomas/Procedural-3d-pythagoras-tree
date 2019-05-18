@@ -225,14 +225,18 @@ public class Main {
 
         //testing:
         //tetraeder Model
+//        float[] model = {
+//                //  Position3  Color3         Texcoords2
+//                -0.5f, 0f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //vl
+//                0.5f, 0f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   //vr
+//                0.0f, 0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f   //h
+//        };
+
         float[] model = {
-                //  Position3  Color3         Texcoords2
-                -0.5f, 0f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  //vl
-                0.5f, 0f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   //vr
-                0.0f, 0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f   //h
-
-
-
+                //Position3            //Normale3           //color3            //TexCoord2     //length1
+                -0.3f, -0.7f, 0.0f,     0.0f, 1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,     5.0f,
+                0.0f, -0.7f, 0.3f,      0.0f, 1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,     5.0f,
+                0.3f, -0.7f, 0.0f,      0.0f, 1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,     5.0f
         };
 
         //<editor-fold desc="VAO Stuff">
@@ -324,18 +328,35 @@ public class Main {
 
 
         //<editor-fold desc="Attrib Pointer Stuff">
-        int posAttrib = glGetAttribLocation(shaderProgram, "position");
-        glEnableVertexAttribArray(posAttrib);
         int sizeOfFloat = 4;
-        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 8 * sizeOfFloat, 0);
-
-        int colAttrib = glGetAttribLocation(shaderProgram, "color");
-        glEnableVertexAttribArray(colAttrib);
-        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 8 * sizeOfFloat, 3 * sizeOfFloat);
-
+        int posAttrib = glGetAttribLocation(shaderProgram, "pos");
+        glEnableVertexAttribArray(posAttrib);
+        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 12 * sizeOfFloat, 0*sizeOfFloat);
+        int normalAttrib = glGetAttribLocation(shaderProgram, "normal");
+        glEnableVertexAttribArray(normalAttrib);
+        glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, false, 12 * sizeOfFloat, 3*sizeOfFloat);
+        int colorAttrib = glGetAttribLocation(shaderProgram, "color");
+        glEnableVertexAttribArray(colorAttrib);
+        glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, false, 12 * sizeOfFloat, 6*sizeOfFloat);
         int texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
         glEnableVertexAttribArray(texAttrib);
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 8 * sizeOfFloat, 6 * sizeOfFloat);
+        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 12 * sizeOfFloat, 9 * sizeOfFloat);
+        int lengthAttrib = glGetAttribLocation(shaderProgram, "length");
+        glEnableVertexAttribArray(lengthAttrib);
+        glVertexAttribPointer(lengthAttrib, 1, GL_FLOAT, false, 12 * sizeOfFloat, 11*sizeOfFloat);
+
+
+//        int posAttrib = glGetAttribLocation(shaderProgram, "position");
+//        glEnableVertexAttribArray(posAttrib);
+//        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 10 * sizeOfFloat, 0);
+//
+//        int colAttrib = glGetAttribLocation(shaderProgram, "color");
+//        glEnableVertexAttribArray(colAttrib);
+//        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 10 * sizeOfFloat, 3 * sizeOfFloat);
+//
+//        int texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
+//        glEnableVertexAttribArray(texAttrib);
+//        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 10 * sizeOfFloat, 6 * sizeOfFloat);
         //</editor-fold>
 
 
