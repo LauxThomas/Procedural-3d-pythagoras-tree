@@ -151,6 +151,10 @@ public class MiniTFTest {
 
         //Save the input variable location
         positionLocation = glGetAttribLocation(shaderProgram, "position");
+        normalLocation = glGetAttribLocation(shaderProgram, "normal");
+        colorLocation = glGetAttribLocation(shaderProgram, "color");
+        textureCoordLocation = glGetAttribLocation(shaderProgram, "texCoord");
+        lengthLocation = glGetAttribLocation(shaderProgram, "length");
 
     }
 
@@ -181,7 +185,7 @@ public class MiniTFTest {
         //simply be discarded.
         outputVBO = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, outputVBO);
-        glBufferData(GL_ARRAY_BUFFER, model.length*4, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, model.length, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         //We create our transform feedback object. We then bind it and
@@ -274,19 +278,20 @@ public class MiniTFTest {
             glBindBuffer(GL_ARRAY_BUFFER, inputVBO);
             glBufferData(GL_ARRAY_BUFFER, inputData, GL_STREAM_DRAW);
 
-            //Enable our only shader input attribute.
-            int posAttrib = glGetAttribLocation(shaderProgram, "pos");
-            glEnableVertexAttribArray(posAttrib);
-            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 12*sizeOfFloat, 0*sizeOfFloat);
+            glEnableVertexAttribArray(positionLocation);
+            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 0*sizeOfFloat);
 
-//            glEnableVertexAttribArray(normalLocation);
-//            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 3*sizeOfFloat);
-//            glEnableVertexAttribArray(colorLocation);
-//            glVertexAttribPointer(colorLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 6*sizeOfFloat);
-//            glEnableVertexAttribArray(textureCoordLocation);
-//            glVertexAttribPointer(textureCoordLocation, 2, GL_FLOAT, false, 12*sizeOfFloat, 9*sizeOfFloat);
-//            glEnableVertexAttribArray(lengthLocation);
-//            glVertexAttribPointer(lengthLocation, 1, GL_FLOAT, false, 12*sizeOfFloat, 11*sizeOfFloat);
+            glEnableVertexAttribArray(normalLocation);
+            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 3*sizeOfFloat);
+
+            glEnableVertexAttribArray(colorLocation);
+            glVertexAttribPointer(colorLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 6*sizeOfFloat);
+
+            glEnableVertexAttribArray(textureCoordLocation);
+            glVertexAttribPointer(textureCoordLocation, 2, GL_FLOAT, false, 12*sizeOfFloat, 9*sizeOfFloat);
+
+            glEnableVertexAttribArray(lengthLocation);
+            glVertexAttribPointer(lengthLocation, 1, GL_FLOAT, false, 12*sizeOfFloat, 11*sizeOfFloat);
 
             //Draw the points with a standard glDrawArrays() call, but wrap it in
             //a query so we can determine exactly how many points that were stored
