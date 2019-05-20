@@ -21,7 +21,6 @@ import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_QUERY_RESULT;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL15.GL_TEXTURE_3D;
@@ -31,7 +30,6 @@ import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glEndQuery;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL15.glGenQueries;
-import static org.lwjgl.opengl.GL15.glGetQueryObjecti;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 import static org.lwjgl.opengl.GL20.glAttachShader;
 import static org.lwjgl.opengl.GL20.glCompileShader;
@@ -54,16 +52,21 @@ import static org.lwjgl.opengl.GL30.glBindBufferBase;
 import static org.lwjgl.opengl.GL30.glEndTransformFeedback;
 import static org.lwjgl.opengl.GL30.glTransformFeedbackVaryings;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
+import static org.lwjgl.opengl.GL40.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL40.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class MiniTFTest {
 
-    private static final int NUM_POINTS = 100000;
+//    private static final int NUM_POINTS = 3;
 
     private int shaderProgram;
     private long window;
     private int positionLocation;
+    private int normalLocation;
+    private int colorLocation;
+    private int textureCoordLocation;
+    private int lengthLocation;
 
     private FloatBuffer inputData;
     private int inputVBO;
@@ -71,8 +74,11 @@ public class MiniTFTest {
     private int feedbackObject;
     private int outputVBO;
     private int queryObject;
+    private float[] model;
 
-    public MiniTFTest(){
+    private int sizeOfFloat = 4;
+
+    public MiniTFTest() {
         initLWJGL();
         initShader();
         initTransformFeedback();
@@ -122,6 +128,11 @@ public class MiniTFTest {
         glCompileShader(geometryShader);
         glAttachShader(shaderProgram, geometryShader);
 
+        int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, loadFileSource("src/main/java/screen.frag"));
+        glCompileShader(fragmentShader);
+        glAttachShader(shaderProgram, fragmentShader);
+
         //This line tells the shader which output attributes from the geometry shader
         //we want to save to the transform feedback output VBO. It's an array of varying
         //names followed by an enum controlling how we want the data to be stored.
@@ -134,7 +145,7 @@ public class MiniTFTest {
 
         glLinkProgram(shaderProgram);
         String log = glGetProgramInfoLog(shaderProgram, 65536);
-        if(log.length() != 0){
+        if (log.length() != 0) {
             System.out.println("Program link log:\n" + log);
         }
 
@@ -145,8 +156,22 @@ public class MiniTFTest {
 
     private void initTransformFeedback() {
 
+        model = new float[]{
+                //Position3            //Normale3           //color3            //TexCoord2     //length1
+                -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 5.0f,
+                0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 5.0f,
+                0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 5.0f
+        };
+
+//        model = new float[]{
+//                //Position3
+//                -0.5f, -0.5f, 0.0f,
+//                0.5f, -0.5f, 0.0f,
+//                0.0f, 0.5f, 0.0f
+//        };
+
         //This is the buffer we fill with random points to process.
-        inputData = BufferUtils.createFloatBuffer(NUM_POINTS * 2);
+        inputData = BufferUtils.createFloatBuffer(model.length);
         //And the VBO which we upload the data to.
         inputVBO = glGenBuffers();
 
@@ -156,7 +181,7 @@ public class MiniTFTest {
         //simply be discarded.
         outputVBO = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, outputVBO);
-        glBufferData(GL_ARRAY_BUFFER, NUM_POINTS * 2 * 4, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, model.length*4, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         //We create our transform feedback object. We then bind it and
@@ -178,18 +203,20 @@ public class MiniTFTest {
 
         Random r = new Random();
 
-        for(int i = 0; i < NUM_POINTS; i++){
-            inputData.put(r.nextFloat() * 2 - 1).put(r.nextFloat() * 2 - 1);
-        }
+//        for(int i = 0; i < NUM_POINTS; i++){
+////            inputData.put(r.nextFloat() * 2 - 1).put(r.nextFloat() * 2 - 1).put(r.nextFloat() * 2 - 1);
+//            inputData.put(1f/i).put(2f/i).put(0);
+//        }
+        inputData.put(model);
 
         inputData.flip();
     }
 
     //Loads shader source code from a file.
-    public static String loadFileSource(String path){
+    public static String loadFileSource(String path) {
 
         File file = new File(path);
-        if(!file.exists()){
+        if (!file.exists()) {
             System.out.println("Unable to open file " + file.getAbsolutePath() + "!!!");
             return null;
         }
@@ -210,13 +237,13 @@ public class MiniTFTest {
         return source.toString();
     }
 
-    public void gameloop(){
-        while(!glfwWindowShouldClose(window)){
+    public void gameloop() {
+        while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT);
 
             //Randomize the input points if the left mouse button is pressed.
 //            if(Mouse.isButtonDown(0)){
-                randomizeInputData();
+            randomizeInputData();
 //            }
 
             processPoints();
@@ -248,8 +275,18 @@ public class MiniTFTest {
             glBufferData(GL_ARRAY_BUFFER, inputData, GL_STREAM_DRAW);
 
             //Enable our only shader input attribute.
-            glEnableVertexAttribArray(positionLocation);
-            glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
+            int posAttrib = glGetAttribLocation(shaderProgram, "pos");
+            glEnableVertexAttribArray(posAttrib);
+            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 12*sizeOfFloat, 0*sizeOfFloat);
+
+//            glEnableVertexAttribArray(normalLocation);
+//            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 3*sizeOfFloat);
+//            glEnableVertexAttribArray(colorLocation);
+//            glVertexAttribPointer(colorLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 6*sizeOfFloat);
+//            glEnableVertexAttribArray(textureCoordLocation);
+//            glVertexAttribPointer(textureCoordLocation, 2, GL_FLOAT, false, 12*sizeOfFloat, 9*sizeOfFloat);
+//            glEnableVertexAttribArray(lengthLocation);
+//            glVertexAttribPointer(lengthLocation, 1, GL_FLOAT, false, 12*sizeOfFloat, 11*sizeOfFloat);
 
             //Draw the points with a standard glDrawArrays() call, but wrap it in
             //a query so we can determine exactly how many points that were stored
@@ -258,12 +295,16 @@ public class MiniTFTest {
             //how many points that passed to the console! It's possible to draw
             //all points that passed without a query! See renderOutput()!
             glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, queryObject);
-            glDrawArrays(GL_POINTS, 0, NUM_POINTS);
+            glDrawArrays(GL_POINTS, 0, model.length);
             glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
             System.out.println("Points drawn: " + glGetQueryObjecti(queryObject, GL_QUERY_RESULT));
 
             //Clean up after us...
             glDisableVertexAttribArray(positionLocation);
+            glDisableVertexAttribArray(normalLocation);
+            glDisableVertexAttribArray(colorLocation);
+            glDisableVertexAttribArray(textureCoordLocation);
+            glDisableVertexAttribArray(lengthLocation);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         }
@@ -282,7 +323,7 @@ public class MiniTFTest {
         //We're using the fixed functionality pipeline here,
         //so just set it up to read positions from the outputVBO.
         glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(2, GL_FLOAT, 0, 0);
+        glVertexPointer(3, GL_FLOAT, 12, 0);
 
         //glDrawTransformFeedback is a special draw call that is very similar to
         //glDrawArrays(). It allows us to draw all points that were output by our
@@ -298,7 +339,7 @@ public class MiniTFTest {
 
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         new MiniTFTest().gameloop();
     }
 }
