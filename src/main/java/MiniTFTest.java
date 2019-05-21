@@ -13,7 +13,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_POINTS;
 import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glDisable;
@@ -55,7 +54,15 @@ import static org.lwjgl.opengl.GL30.glEndTransformFeedback;
 import static org.lwjgl.opengl.GL30.glTransformFeedbackVaryings;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.opengl.GL40.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL40.GL_QUERY_RESULT;
+import static org.lwjgl.opengl.GL40.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL40.*;
+import static org.lwjgl.opengl.GL40.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL40.glActiveTexture;
+import static org.lwjgl.opengl.GL40.glGetQueryObjecti;
+import static org.lwjgl.opengl.GL40.glGetUniformLocation;
+import static org.lwjgl.opengl.GL40.glUniform1i;
+import static org.lwjgl.opengl.GL40.glUniformMatrix4fv;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class MiniTFTest {
@@ -193,13 +200,6 @@ public class MiniTFTest {
                 0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 5.0f
         };
 
-//        model = new float[]{
-//                //Position3
-//                -0.5f, -0.5f, 0.0f,
-//                0.5f, -0.5f, 0.0f,
-//                0.0f, 0.5f, 0.0f
-//        };
-
         //This is the buffer we fill with random points to process.
         inputData = BufferUtils.createFloatBuffer(model.length);
         //And the VBO which we upload the data to.
@@ -211,7 +211,7 @@ public class MiniTFTest {
         //simply be discarded.
         outputVBO = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, outputVBO);
-        glBufferData(GL_ARRAY_BUFFER, model.length, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, model.length*500, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         //We create our transform feedback object. We then bind it and
@@ -297,7 +297,7 @@ public class MiniTFTest {
 
         //and then the feedback object
         glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedbackObject);
-        glBeginTransformFeedback(GL_POINTS);
+        glBeginTransformFeedback(GL_TRIANGLES);
         {
             //Between glBeginTransformFeedback(GL_POINTS) and glEndTransformFeedback()
             //we can of course only draw points.
@@ -328,7 +328,7 @@ public class MiniTFTest {
             //how many points that passed to the console! It's possible to draw
             //all points that passed without a query! See renderOutput()!
             glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, queryObject);
-            glDrawArrays(GL_POINTS, 0, model.length);
+            glDrawArrays(GL_TRIANGLES, 0, model.length);
             glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
             System.out.println("Points drawn: " + glGetQueryObjecti(queryObject, GL_QUERY_RESULT));
 
@@ -337,6 +337,7 @@ public class MiniTFTest {
             glDisableVertexAttribArray(normalLocation);
             glDisableVertexAttribArray(colorLocation);
             glDisableVertexAttribArray(textureCoordLocation);
+            glDisableVertexAttribArray(lengthLocation);
             glDisableVertexAttribArray(lengthLocation);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -364,7 +365,7 @@ public class MiniTFTest {
         //This is the same as glDrawArrays(GL_POINTS, 0, num_points_that_passed);,
         //but is a LOT faster than if we had used a query object to get the count
         //and then manually calling glDrawArrays() with that count.
-        glDrawTransformFeedback(GL_POINTS, feedbackObject);
+        glDrawTransformFeedback(GL_TRIANGLES, feedbackObject);
 
         //Clean up...
         glDisableClientState(GL_VERTEX_ARRAY);
