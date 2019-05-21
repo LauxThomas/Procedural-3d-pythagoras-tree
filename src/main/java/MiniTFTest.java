@@ -1,3 +1,5 @@
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -77,12 +79,36 @@ public class MiniTFTest {
     private float[] model;
 
     private int sizeOfFloat = 4;
+    private Matrix4f trans;
+    private Matrix4f proj;
+    private Matrix4f view;
+    private boolean rotateObject = true;
 
     public MiniTFTest() {
         initLWJGL();
         initShader();
+        initAttributes();
         initTransformFeedback();
         randomizeInputData();
+    }
+
+    private void initAttributes() {
+        //<editor-fold desc="Texture Stuff">
+        Texture texture = new Texture("treebark.jpg");
+        int texUnit = 0;
+        int texUniform = glGetUniformLocation(shaderProgram, "tex");
+        glUniform1i(texUniform, texUnit);
+        glActiveTexture(GL_TEXTURE0 + 5);  //+5!!!
+        texture.bind();
+        //</editor-fold>
+
+        //<editor-fold desc="MVP creation">
+        //create MVP:
+        trans = new Matrix4f().identity();
+        trans.rotate((float) Math.toRadians(30), 1f, 0f, 0);
+        proj = new Matrix4f().identity();
+        view = new Matrix4f().identity();
+        //</editor-fold>
     }
 
     private void initLWJGL() {
@@ -204,7 +230,9 @@ public class MiniTFTest {
     //with coordinates ranging from -1 to 1 (the whole screen).
     private void randomizeInputData() {
 
-
+        if (rotateObject) {
+            trans.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
+        }
         Random r = new Random();
 
 //        for(int i = 0; i < NUM_POINTS; i++){
@@ -245,10 +273,10 @@ public class MiniTFTest {
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT);
 
-            //Randomize the input points if the left mouse button is pressed.
-//            if(Mouse.isButtonDown(0)){
-            randomizeInputData();
-//            }
+//            randomizeInputData();
+            calculateModel();
+            calculateView();
+            calculateProjection();
 
             processPoints();
             renderOutput();
@@ -279,19 +307,19 @@ public class MiniTFTest {
             glBufferData(GL_ARRAY_BUFFER, inputData, GL_STREAM_DRAW);
 
             glEnableVertexAttribArray(positionLocation);
-            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 0*sizeOfFloat);
+            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, false, 12 * sizeOfFloat, 0 * sizeOfFloat);
 
             glEnableVertexAttribArray(normalLocation);
-            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 3*sizeOfFloat);
+            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, false, 12 * sizeOfFloat, 3 * sizeOfFloat);
 
             glEnableVertexAttribArray(colorLocation);
-            glVertexAttribPointer(colorLocation, 3, GL_FLOAT, false, 12*sizeOfFloat, 6*sizeOfFloat);
+            glVertexAttribPointer(colorLocation, 3, GL_FLOAT, false, 12 * sizeOfFloat, 6 * sizeOfFloat);
 
             glEnableVertexAttribArray(textureCoordLocation);
-            glVertexAttribPointer(textureCoordLocation, 2, GL_FLOAT, false, 12*sizeOfFloat, 9*sizeOfFloat);
+            glVertexAttribPointer(textureCoordLocation, 2, GL_FLOAT, false, 12 * sizeOfFloat, 9 * sizeOfFloat);
 
             glEnableVertexAttribArray(lengthLocation);
-            glVertexAttribPointer(lengthLocation, 1, GL_FLOAT, false, 12*sizeOfFloat, 11*sizeOfFloat);
+            glVertexAttribPointer(lengthLocation, 1, GL_FLOAT, false, 12 * sizeOfFloat, 11 * sizeOfFloat);
 
             //Draw the points with a standard glDrawArrays() call, but wrap it in
             //a query so we can determine exactly how many points that were stored
@@ -342,6 +370,42 @@ public class MiniTFTest {
         glDisableClientState(GL_VERTEX_ARRAY);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    }
+
+
+    private void calculateProjection() {
+        proj = new Matrix4f().perspective(1, 1, 3, -3);
+
+        FloatBuffer fb = BufferUtils.createFloatBuffer(16);
+        proj.get(fb);
+        int uniTrans = glGetUniformLocation(shaderProgram, "proj");
+        glUniformMatrix4fv(uniTrans, false, fb);
+    }
+
+    private void calculateView() {
+        view = new Matrix4f().lookAt(
+                new Vector3f(0.0f, 0.0f, 7f),       //eye
+                new Vector3f(0, 0, 0),            //center
+                new Vector3f(0.0f, 2f, 0f)    //up
+        );
+
+        FloatBuffer fb = BufferUtils.createFloatBuffer(16);
+        view.get(fb);
+        int uniTrans = glGetUniformLocation(shaderProgram, "view");
+        glUniformMatrix4fv(uniTrans, false, fb);
+
+    }
+
+    private void calculateModel() {
+        FloatBuffer fb = BufferUtils.createFloatBuffer(16);
+        if (rotateObject) {
+            trans.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
+        }
+
+        trans.get(fb);
+
+        int uniTrans = glGetUniformLocation(shaderProgram, "model");
+        glUniformMatrix4fv(uniTrans, false, fb);
     }
 
     public static void main(String[] args) {
