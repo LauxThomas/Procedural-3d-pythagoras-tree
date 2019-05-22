@@ -43,6 +43,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
 
+    //<editor-fold desc="Attributes">
     private long window;
     private int uniColor;
     private float pulseColor = 1;
@@ -68,6 +69,7 @@ public class Main {
     private int colorAttrib;
     private int texAttrib;
     private int lengthAttrib;
+    //</editor-fold>
 
     public Main() {
         init();
@@ -84,6 +86,8 @@ public class Main {
 
     }
 
+
+    //<editor-fold desc="init">
     private void init() {
 
         if (!glfwInit()) {
@@ -104,7 +108,6 @@ public class Main {
         createTriangleColorUniform();
         useProgram();
     }
-
 
     private void initializeWindow() {
         int w = 1024;
@@ -300,7 +303,9 @@ public class Main {
             }
         }, 0, 500); // 1000 = 1 Sek.
     }
+    //</editor-fold>
 
+    //<editor-fold desc="update">
     private void update() {
         glfwPollEvents();
         calculatePulseColor();
@@ -357,8 +362,9 @@ public class Main {
         int uniTrans = glGetUniformLocation(shaderProgram, "proj");
         glUniformMatrix4fv(uniTrans, false, fb);
     }
+    //</editor-fold>
 
-
+    //<editor-fold desc="render">
     private void render() {
         clearDisplay();
         glUniform3f(uniColor, pulseColor, 1 - pulseColor, 0.25f + 0.5f * pulseColor);
@@ -372,7 +378,7 @@ public class Main {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
-
+    //</editor-fold>
 
     public static void main(String[] args) {
         new Main();
