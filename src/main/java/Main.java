@@ -1,5 +1,6 @@
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -12,6 +13,7 @@ import java.nio.file.Paths;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
@@ -95,7 +97,8 @@ public class Main {
     private int feedbackObject;
     private int queryObject;
     private CharSequence[] varyings;
-    private float[] vert2;
+    //    private float[] vert2;
+    private Vector4f[] vert2;
     private int numberOfIterations = 10;
     private int numberOfVertices = 0;
     private int numberOfTriangles = 10;
@@ -187,7 +190,6 @@ public class Main {
     }
 
     private void terminateApplication() {
-        System.out.println("YO: BYE!");
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         // Terminate GLFW and free the error callback
@@ -245,17 +247,11 @@ public class Main {
         swapVertexArray = currentVertexArray;
         currentVertexArray = lastVertexArray;
         lastVertexArray = swapVertexArray;
-//        System.out.println("swapVertexArray: " + swapVertexArray + "\n"
-//            + "currentVertexArray: " + currentVertexArray + "\n"
-//                + "lastVertexArray: " + lastVertexArray + "\n");
 
         swapFeedbackBuffer = glGenBuffers();
         swapFeedbackBuffer = currentFeedbackBuffer;
         currentFeedbackBuffer = lastFeedbackBuffer;
         lastFeedbackBuffer = swapFeedbackBuffer;
-//        System.out.println("swapFeedbackBuffer: " + swapFeedbackBuffer + "\n"
-//                + "currentFeedbackBuffer: " + currentFeedbackBuffer + "\n"
-//                + "lastFeedbackBuffer: " + lastVertexArray + "\n");
 
     }
 
@@ -299,7 +295,7 @@ public class Main {
     private void createTransformFeedbackBuffer() {
         mybufferFeedback = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, mybufferFeedback);
-        glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices, GL_STATIC_READ);
+        glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices * 50, GL_STATIC_READ);
     }
 
     private void createVertexArrayObject() {
@@ -311,10 +307,15 @@ public class Main {
     private void createArrayBuffer() {
         myBufferTriangle = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, myBufferTriangle);
-        glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices * 50, GL_STATIC_DRAW);
 
         FloatBuffer verticeBuffer = BufferUtils.createFloatBuffer(vert2.length * 500);
-        verticeBuffer.put(vert2).flip();
+        float[] temp = new float[] {
+                vert2[0].x,vert2[0].y,vert2[0].z,vert2[0].w,
+                vert2[1].x,vert2[1].y,vert2[1].z,vert2[1].w,
+                vert2[2].x,vert2[2].y,vert2[2].z,vert2[2].w
+        };
+        verticeBuffer.put(temp).flip();
         glBufferSubData(GL_ARRAY_BUFFER, 0, verticeBuffer);
     }
 
@@ -358,20 +359,23 @@ public class Main {
     }
 
     private void createModel() {
-        vert2 = new float[]{
-                //vx vy vz l nx ny nz
-                +0.0f, +0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
-                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
-                +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f
+        vert2 = new Vector4f[]{
+                new Vector4f(0.0f, 0.5f, -0.5f, 1.0f),
+                new Vector4f(-0.5f, -0.5f, -0.5f, 1.0f),
+                new Vector4f(0.5f, -0.5f, -0.5f, 1.0f)
+//                //vx vy vz l nx ny nz
+//                +0.0f, +0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
+//                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
+//                +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f
         };
     }
 
 
     private void createAndCompileShaders() {
-        String renderVertexShaderSrc = createShader("teststruct2Render.vert");
-        String renderFragmentShaderSrc = createShader("teststruct2Render.frag");
-        String geoVertexShaderSrc = createShader("tree.vert");
-        String geoGeometyShaderSrc = createShader("tree.geom");
+        String renderVertexShaderSrc = createShader("renderShader.vert");
+        String renderFragmentShaderSrc = createShader("renderShader.frag");
+        String geoVertexShaderSrc = createShader("constructionShader.vert");
+        String geoGeometyShaderSrc = createShader("constructionShader.geom");
 
         //Compile renderVertexShader:
         renderVertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -478,9 +482,8 @@ public class Main {
     }
 
     private void clearDisplay() {
-//        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
         glClearColor(0.78f, 0.86f, 0.83f, 1.0f);
-        //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     public static void main(String[] args) {
