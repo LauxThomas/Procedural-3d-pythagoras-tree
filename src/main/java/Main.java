@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -138,14 +139,15 @@ public class Main {
         createSecondVertexAttribAndPointers();
         setArrayAndBufferPointer();
         iterationsLoop();
-        clearDisplay();
         setCamera();
         calculateAspect();
         gameLoop();
+        terminateApplication();
     }
 
     private void gameLoop() {
         while (!glfwWindowShouldClose(window)) {
+            clearDisplay();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             double previous_seconds = glfwGetTime();
@@ -157,6 +159,7 @@ public class Main {
             glUseProgram(renderProgram);
 
             glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
+            glfwSwapBuffers(window);
             glfwPollEvents();
 
             if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE))
@@ -180,9 +183,19 @@ public class Main {
             calculateProjection();
 
         }
+
+    }
+
+    private void terminateApplication() {
+        System.out.println("YO: BYE!");
+        glfwFreeCallbacks(window);
+        glfwDestroyWindow(window);
+        // Terminate GLFW and free the error callback
         glfwTerminate();
+        if (glfwSetErrorCallback(null) != null) {
+            glfwSetErrorCallback(null).free();
+        }
         System.exit(1);
-        return;
     }
 
 
@@ -328,6 +341,10 @@ public class Main {
         if (window == NULL) {
             return;
         }
+        glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+        });
         GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwSetWindowPos(window, (vidmode != null ? vidmode.width() : 0) / 2 - windowWidth / 2, (vidmode != null ? vidmode.height() : 0) / 2 - windowHeight / 2);
         glfwMakeContextCurrent(window);
@@ -462,7 +479,7 @@ public class Main {
 
     private void clearDisplay() {
 //        glEnable(GL_DEPTH_TEST);
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.78f, 0.86f, 0.83f, 1.0f);
         //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
