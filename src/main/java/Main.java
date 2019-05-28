@@ -14,6 +14,7 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
@@ -44,21 +45,14 @@ import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.GL_RASTERIZER_DISCARD;
-import static org.lwjgl.opengl.GL30.GL_TRANSFORM_FEEDBACK_BUFFER;
-import static org.lwjgl.opengl.GL30.glBeginTransformFeedback;
-import static org.lwjgl.opengl.GL30.glBindBufferBase;
-import static org.lwjgl.opengl.GL30.glEndTransformFeedback;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.opengl.GL40.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL40.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL40.GL_INTERLEAVED_ATTRIBS;
 import static org.lwjgl.opengl.GL40.GL_STATIC_READ;
-import static org.lwjgl.opengl.GL40.glBindVertexArray;
+import static org.lwjgl.opengl.GL40.*;
 import static org.lwjgl.opengl.GL40.glBufferSubData;
 import static org.lwjgl.opengl.GL40.glClear;
 import static org.lwjgl.opengl.GL40.glFlush;
-import static org.lwjgl.opengl.GL40.glGenVertexArrays;
-import static org.lwjgl.opengl.GL40.glTransformFeedbackVaryings;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
@@ -101,7 +95,7 @@ public class Main {
     private Vector4f[] vert2;
     private int numberOfIterations = 10;
     private int numberOfVertices = 0;
-    private int numberOfTriangles = 10;
+    private int numberOfTriangles = 0;
     private int mybufferFeedback;
     private int renderVertex;
     private int renderPos;
@@ -134,6 +128,7 @@ public class Main {
         createProgrammAndLinkShaders();
         createModel();
         calculateNumberOfVertices(numberOfIterations);
+        System.out.println("NUMBER OF VERTICES: " + numberOfVertices);
         createArrayBuffer();
         createVertexArrayObject();
         createVertexAttribAndPointers();
@@ -147,6 +142,7 @@ public class Main {
         gameLoop();
         terminateApplication();
     }
+
 
     private void gameLoop() {
         while (!glfwWindowShouldClose(window)) {
@@ -162,7 +158,7 @@ public class Main {
             glUseProgram(renderProgram);
 
             glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
-            glfwSwapBuffers(window);
+//            glfwSwapBuffers(window);
             glfwPollEvents();
 
             if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE))
@@ -184,6 +180,7 @@ public class Main {
             calculateModel();
             calculateView();
             calculateProjection();
+            glfwSwapBuffers(window);
 
         }
 
@@ -226,6 +223,9 @@ public class Main {
     }
 
     private void iterationsLoop() {
+        swapVertexArray = glGenVertexArrays();
+        swapFeedbackBuffer = glGenBuffers();
+        int error;
         for (int i = 0; i < numberOfIterations; ++i) {
             glBindVertexArray(currentVertexArray);
             glUseProgram(geoProgram);
@@ -239,16 +239,18 @@ public class Main {
             glFlush();
 
             swapVertexArrayAndBuffers();
+            error = glGetError();
+            if (error != 0) {
+                System.out.println("FEHLER: " + error);
+            }
         }
     }
 
     private void swapVertexArrayAndBuffers() {
-        swapVertexArray = glGenVertexArrays();
         swapVertexArray = currentVertexArray;
         currentVertexArray = lastVertexArray;
         lastVertexArray = swapVertexArray;
 
-        swapFeedbackBuffer = glGenBuffers();
         swapFeedbackBuffer = currentFeedbackBuffer;
         currentFeedbackBuffer = lastFeedbackBuffer;
         lastFeedbackBuffer = swapFeedbackBuffer;
@@ -259,7 +261,7 @@ public class Main {
         currentVertexArray = glGenVertexArrays();
         currentVertexArray = vertexArr;
         currentFeedbackBuffer = glGenBuffers();
-        currentVertexArray = mybufferFeedback;
+        currentFeedbackBuffer = mybufferFeedback;
 
         lastVertexArray = glGenVertexArrays();
         lastVertexArray = renderVertex;
@@ -272,14 +274,17 @@ public class Main {
     private void createSecondVertexAttribAndPointers() {
 
         renderPos = glGetAttribLocation(renderProgram, "position");
+        System.out.println("renderpos: " + renderPos);
         glEnableVertexAttribArray(renderPos);
         glVertexAttribPointer(renderPos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
 
-        renderLength = glGetAttribLocation(renderProgram, "length");
+        renderLength = glGetAttribLocation(renderProgram, "fraglength");
+        System.out.println("renderlength: " + renderLength);
         glEnableVertexAttribArray(renderLength);
         glVertexAttribPointer(renderLength, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
-        renderNormal = glGetAttribLocation(renderProgram, "normal");
+        renderNormal = glGetAttribLocation(renderProgram, "fragnormal");
+        System.out.println("rendernormal: " + renderNormal);
         glEnableVertexAttribArray(renderNormal);
         glVertexAttribPointer(renderNormal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
 
@@ -310,10 +315,10 @@ public class Main {
         glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices * 50, GL_STATIC_DRAW);
 
         FloatBuffer verticeBuffer = BufferUtils.createFloatBuffer(vert2.length * 500);
-        float[] temp = new float[] {
-                vert2[0].x,vert2[0].y,vert2[0].z,vert2[0].w,
-                vert2[1].x,vert2[1].y,vert2[1].z,vert2[1].w,
-                vert2[2].x,vert2[2].y,vert2[2].z,vert2[2].w
+        float[] temp = new float[]{
+                vert2[0].x, vert2[0].y, vert2[0].z, vert2[0].w,
+                vert2[1].x, vert2[1].y, vert2[1].z, vert2[1].w,
+                vert2[2].x, vert2[2].y, vert2[2].z, vert2[2].w
         };
         verticeBuffer.put(temp).flip();
         glBufferSubData(GL_ARRAY_BUFFER, 0, verticeBuffer);
@@ -368,10 +373,12 @@ public class Main {
 //                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
 //                +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f
         };
+
     }
 
 
     private void createAndCompileShaders() {
+
         String renderVertexShaderSrc = createShader("renderShader.vert");
         String renderFragmentShaderSrc = createShader("renderShader.frag");
         String geoVertexShaderSrc = createShader("constructionShader.vert");
@@ -414,8 +421,8 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("couldn't create Shader " + shaderName);
+            return null;
         }
-        return null;
     }
 
     private void createProgrammAndLinkShaders() {
@@ -435,14 +442,17 @@ public class Main {
 
     private void createVertexAttribAndPointers() {
         pos = glGetAttribLocation(geoProgram, "position");
+        System.out.println("pos: " + pos);
         glEnableVertexAttribArray(pos);
         glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
 
         length = glGetAttribLocation(geoProgram, "length");
+        System.out.println("length: " + length);
         glEnableVertexAttribArray(length);
         glVertexAttribPointer(length, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
         normal = glGetAttribLocation(geoProgram, "normal");
+        System.out.println("normal:" + normal);
         glEnableVertexAttribArray(normal);
         glVertexAttribPointer(normal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
     }
@@ -470,6 +480,44 @@ public class Main {
         int uniTrans = glGetUniformLocation(renderProgram, "view");
         glUniformMatrix4fv(uniTrans, false, fb);
 
+    }
+
+    public int createAndCompileShader(int shadertype, String shaderName) {
+        String shaderSource = "";
+        try {
+            shaderSource = new String(Files.readAllBytes(Paths.get("src/main/java/" + shaderName)), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Create a Shader Object in GPU and give me the int for it
+        // (see handle explanation above)
+        int shader = glCreateShader(shadertype);
+
+        // Upload our source string to the GPU in the specified shader
+        glShaderSource(shader, shaderSource);
+
+        // try to compile the shader
+        glCompileShader(shader);
+
+        // check the status for errors
+        int status = glGetShaderi(shader, GL_COMPILE_STATUS);
+        if (status == GL_FALSE) {
+            // Following code prints the info into the error stream
+            String error = glGetShaderInfoLog(shader);
+            String shaderTypeString = null;
+            switch (shadertype) {
+                case GL_VERTEX_SHADER:
+                    shaderTypeString = "vertex";
+                    break;
+                case GL_FRAGMENT_SHADER:
+                    shaderTypeString = "fragment";
+                    break;
+            }
+            System.err.println("Compile failure in " + shaderTypeString + " shader:\n" + error);
+        }
+
+        // Lets return the shader so we can add it to the program
+        return shader;
     }
 
     private void calculateProjection() {
