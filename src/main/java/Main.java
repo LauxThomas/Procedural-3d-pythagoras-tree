@@ -14,7 +14,6 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL.createCapabilities;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
@@ -48,11 +47,15 @@ import static org.lwjgl.opengl.GL30.GL_RASTERIZER_DISCARD;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.opengl.GL40.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL40.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL40.GL_STATIC_READ;
 import static org.lwjgl.opengl.GL40.*;
+import static org.lwjgl.opengl.GL40.GL_STATIC_READ;
+import static org.lwjgl.opengl.GL40.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL40.glActiveTexture;
 import static org.lwjgl.opengl.GL40.glBufferSubData;
 import static org.lwjgl.opengl.GL40.glClear;
 import static org.lwjgl.opengl.GL40.glFlush;
+import static org.lwjgl.opengl.GL40.glGetError;
+import static org.lwjgl.opengl.GL40.glUniform1i;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
@@ -113,23 +116,21 @@ public class Main {
     private int windowHeight;
     private float aspect;
     private Vector3f camaraPos;
-    private int treei;
     private double rotatorX = 130;
     private double rotatorY = 337;
     private double rotatorZ = 337;
     private float translationX = -0.8f;
     private float translationY = -1.8f;
     private float translationZ = 0;
-    //</editor-fold>
+    private float orbit = 0;
 
     public Main() {
+
+        initializeWindow();
         init();
     }
 
-
-    //<editor-fold desc="init">
     private void init() {
-        initializeWindow();
         createAndCompileShaders();
         createProgrammAndLinkShaders();
         createModel();
@@ -215,6 +216,30 @@ public class Main {
         if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
             updateTranslation("Z", -0.1f);
         }
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+            numberOfIterations = 2;
+            init();
+        }
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+            numberOfIterations = 4;
+            init();
+        }
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+            numberOfIterations = 6;
+            init();
+        }
+        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+            numberOfIterations = 8;
+            init();
+        }
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+            numberOfIterations = 10;
+            init();
+        }
+        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+            orbit++;
+            System.out.println("orbit: " + orbit);
+        }
     }
 
     private void updateRotator(String axis, float amount) {
@@ -274,12 +299,13 @@ public class Main {
     private void updateMatrices() {
         tree = new Matrix4f().identity();
         view = new Matrix4f().identity();
-        view.lookAt(
-                new Vector3f(0.0f, 0.0f, 7f),       //eye
-                new Vector3f(0, 0, 0),            //center
-                new Vector3f(0.0f, 2f, 0f)    //up
-        );
-        proj = new Matrix4f().perspective(1, windowWidth / windowHeight, 3, -3);
+//        view.lookAt(
+//                new Vector3f(0.0f, 0.0f, 7f),       //eye
+//                new Vector3f(0, 0, 0),            //center
+//                new Vector3f(0.0f, 2f, 0f)    //up
+//        );
+//        proj = new Matrix4f().perspective(1, windowWidth / windowHeight, 3, -3);
+        proj = new Matrix4f().identity();
     }
 
     private void calculateAspect() {
@@ -358,6 +384,15 @@ public class Main {
         glEnableVertexAttribArray(renderNormal);
         glVertexAttribPointer(renderNormal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
 
+
+        //createTexture:
+        Texture texture = new Texture("treebark.jpg");
+        int texUnit = 0;
+        int texUniform = glGetUniformLocation(renderProgram, "tex");
+        glUniform1i(texUniform, texUnit);
+        glActiveTexture(GL_TEXTURE0 + 5);  //+5!!!
+        texture.bind();
+
     }
 
     private void createSecondVertexArrayObject() {
@@ -386,9 +421,9 @@ public class Main {
 
         FloatBuffer verticeBuffer = BufferUtils.createFloatBuffer(vert2.length * 500);
         float[] temp = new float[]{
-                vert2[0].x, vert2[0].y, vert2[0].z, vert2[0].w,
-                vert2[1].x, vert2[1].y, vert2[1].z, vert2[1].w,
-                vert2[2].x, vert2[2].y, vert2[2].z, vert2[2].w
+                vert2[0].x, vert2[0].y, vert2[0].z, vert2[0].w, 0.0f, 1.0f, 0.0f,
+                vert2[1].x, vert2[1].y, vert2[1].z, vert2[1].w, 0.0f, 1.0f, 0.0f,
+                vert2[2].x, vert2[2].y, vert2[2].z, vert2[2].w, 0.0f, 1.0f, 0.0f
         };
         verticeBuffer.put(temp).flip();
         glBufferSubData(GL_ARRAY_BUFFER, 0, verticeBuffer);
@@ -534,7 +569,6 @@ public class Main {
         tree.rotate((float) Math.toRadians(rotatorX), 1f, 0f, 0f);
         tree.rotate((float) Math.toRadians(rotatorY), 0f, 1f, 0f);
         tree.rotate((float) Math.toRadians(rotatorZ), 0f, 0f, 1f);
-//        System.out.println("rotator: " + rotator);
 
         tree.get(fb);
 
@@ -544,7 +578,7 @@ public class Main {
 
     private void calculateView() {
         view = new Matrix4f().lookAt(
-                new Vector3f(0.0f, 0.0f, 7f),       //eye
+                new Vector3f(0.0f, 2.0f, 7f),       //eye
                 new Vector3f(0, 0, 0),            //center
                 new Vector3f(0.0f, 2f, 0f)    //up
         );
@@ -556,43 +590,6 @@ public class Main {
 
     }
 
-    public int createAndCompileShader(int shadertype, String shaderName) {
-        String shaderSource = "";
-        try {
-            shaderSource = new String(Files.readAllBytes(Paths.get("src/main/java/" + shaderName)), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Create a Shader Object in GPU and give me the int for it
-        // (see handle explanation above)
-        int shader = glCreateShader(shadertype);
-
-        // Upload our source string to the GPU in the specified shader
-        glShaderSource(shader, shaderSource);
-
-        // try to compile the shader
-        glCompileShader(shader);
-
-        // check the status for errors
-        int status = glGetShaderi(shader, GL_COMPILE_STATUS);
-        if (status == GL_FALSE) {
-            // Following code prints the info into the error stream
-            String error = glGetShaderInfoLog(shader);
-            String shaderTypeString = null;
-            switch (shadertype) {
-                case GL_VERTEX_SHADER:
-                    shaderTypeString = "vertex";
-                    break;
-                case GL_FRAGMENT_SHADER:
-                    shaderTypeString = "fragment";
-                    break;
-            }
-            System.err.println("Compile failure in " + shaderTypeString + " shader:\n" + error);
-        }
-
-        // Lets return the shader so we can add it to the program
-        return shader;
-    }
 
     private void calculateProjection() {
         proj = new Matrix4f().perspective(1, 1, 3, -3);
