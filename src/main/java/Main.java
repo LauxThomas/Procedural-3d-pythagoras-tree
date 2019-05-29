@@ -114,6 +114,9 @@ public class Main {
     private float aspect;
     private Vector3f camaraPos;
     private int treei;
+    private double rotatorX = 0;
+    private double rotatorY = 0;
+    private double rotatorZ = 0;
     //</editor-fold>
 
     public Main() {
@@ -163,18 +166,15 @@ public class Main {
 
             if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE))
                 glfwSetWindowShouldClose(window, true);
-            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-                camaraPos.z += -10.0f * elapsed_seconds;
-            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-                camaraPos.z += 10.0f * elapsed_seconds;
-            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-                rotationX += 10.f * elapsed_seconds;
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-                rotationX -= 10.f * elapsed_seconds;
-            if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-                rotationY = (float) (+1.f * elapsed_seconds);
-            if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-                rotationY = (float) (-1.f * elapsed_seconds);
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                updateRotatorX();
+            }
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+                updateRotatorY();
+            }
+            if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
+                updateRotatorZ();
+            }
 
             updateMatrices();
             calculateModel();
@@ -184,6 +184,24 @@ public class Main {
 
         }
 
+    }
+
+    private void updateRotatorZ() {
+        rotatorZ++;
+        rotatorZ %= 360;
+        System.out.println("RotatorZ: " + rotatorZ);
+    }
+
+    private void updateRotatorX() {
+        rotatorX++;
+        rotatorX %= 360;
+        System.out.println("rotatorX: " + rotatorX);
+    }
+
+    private void updateRotatorY() {
+        rotatorY++;
+        rotatorY %= 360;
+        System.out.println("rotatorY: " + rotatorY);
     }
 
     private void terminateApplication() {
@@ -200,7 +218,7 @@ public class Main {
 
     private void updateMatrices() {
         tree = new Matrix4f().identity();
-        tree.rotate((float) Math.toRadians(30), 1f, 0f, 0);
+        tree.rotate((float) Math.toRadians(30), 0f, 0f, 0);
 
         view = new Matrix4f().identity();
         view.lookAt(
@@ -209,7 +227,7 @@ public class Main {
                 new Vector3f(0.0f, 2f, 0f)    //up
         );
 
-        proj = new Matrix4f().perspective(1, 1, 3, -3);
+        proj = new Matrix4f().perspective(1, windowWidth/windowHeight, 3, -3);
     }
 
     private void calculateAspect() {
@@ -278,12 +296,12 @@ public class Main {
         glEnableVertexAttribArray(renderPos);
         glVertexAttribPointer(renderPos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
 
-        renderLength = glGetAttribLocation(renderProgram, "fraglength");
+        renderLength = glGetAttribLocation(renderProgram, "length");
         System.out.println("renderlength: " + renderLength);
         glEnableVertexAttribArray(renderLength);
         glVertexAttribPointer(renderLength, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
-        renderNormal = glGetAttribLocation(renderProgram, "fragnormal");
+        renderNormal = glGetAttribLocation(renderProgram, "normal");
         System.out.println("rendernormal: " + renderNormal);
         glEnableVertexAttribArray(renderNormal);
         glVertexAttribPointer(renderNormal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
@@ -460,7 +478,10 @@ public class Main {
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
-        tree.rotate((float) Math.toRadians(1), 0f, 1f, 0f);
+        tree.rotate((float) Math.toRadians(rotatorX), 1f, 0f, 0f);
+        tree.rotate((float) Math.toRadians(rotatorY), 0f, 1f, 0f);
+        tree.rotate((float) Math.toRadians(rotatorZ), 0f, 0f, 1f);
+//        System.out.println("rotator: " + rotator);
 
         tree.get(fb);
 

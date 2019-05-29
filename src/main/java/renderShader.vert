@@ -12,7 +12,7 @@ out float fragnormal;
 void main ()
 {
     fraglength = length;
-    //fragnormal = normal.y;
-//    gl_Position = mvp * vec4 (position, 1.0);
-    gl_Position = vec4 (position, 1.0);
+//    fragnormal = normal.y;
+    gl_Position = mvp * vec4 (position, 1.0);
+//    gl_Position = vec4 (position, 1.0);
 }
