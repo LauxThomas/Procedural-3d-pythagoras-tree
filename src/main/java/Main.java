@@ -114,9 +114,12 @@ public class Main {
     private float aspect;
     private Vector3f camaraPos;
     private int treei;
-    private double rotatorX = 0;
-    private double rotatorY = 0;
-    private double rotatorZ = 0;
+    private double rotatorX = 130;
+    private double rotatorY = 337;
+    private double rotatorZ = 337;
+    private float translationX = -0.8f;
+    private float translationY = -1.8f;
+    private float translationZ = 0;
     //</editor-fold>
 
     public Main() {
@@ -161,21 +164,8 @@ public class Main {
             glUseProgram(renderProgram);
 
             glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
-//            glfwSwapBuffers(window);
             glfwPollEvents();
-
-            if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE))
-                glfwSetWindowShouldClose(window, true);
-            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-                updateRotatorX();
-            }
-            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-                updateRotatorY();
-            }
-            if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
-                updateRotatorZ();
-            }
-
+            checkInputs();
             updateMatrices();
             calculateModel();
             calculateView();
@@ -186,22 +176,87 @@ public class Main {
 
     }
 
-    private void updateRotatorZ() {
-        rotatorZ++;
-        rotatorZ %= 360;
-        System.out.println("RotatorZ: " + rotatorZ);
+    private void checkInputs() {
+        if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE))
+            glfwSetWindowShouldClose(window, true);
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            updateRotator("X", 1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            updateRotator("X", -1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            updateRotator("Y", 1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            updateRotator("Y", -1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+            updateRotator("Z", 1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            updateRotator("Z", -1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            updateTranslation("X", 0.1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            updateTranslation("X", -0.1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            updateTranslation("Y", 0.1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            updateTranslation("Y", -0.1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
+            updateTranslation("Z", 0.1f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
+            updateTranslation("Z", -0.1f);
+        }
     }
 
-    private void updateRotatorX() {
-        rotatorX++;
-        rotatorX %= 360;
-        System.out.println("rotatorX: " + rotatorX);
+    private void updateRotator(String axis, float amount) {
+        switch (axis) {
+            case "X":
+                rotatorX += amount;
+                rotatorX %= 360;
+                System.out.println("rotatorX: " + rotatorX);
+                break;
+            case "Y":
+                rotatorY += amount;
+                rotatorY %= 360;
+                System.out.println("rotatorY: " + rotatorY);
+                break;
+            case "Z":
+                rotatorZ += amount;
+                rotatorZ %= 360;
+                System.out.println("rotatorZ: " + rotatorZ);
+                break;
+            default:
+                break;
+
+        }
     }
 
-    private void updateRotatorY() {
-        rotatorY++;
-        rotatorY %= 360;
-        System.out.println("rotatorY: " + rotatorY);
+    private void updateTranslation(String axis, float amount) {
+        switch (axis) {
+            case "X":
+                translationX += amount;
+                System.out.println("translationX: " + translationX);
+                break;
+            case "Y":
+                translationY += amount;
+                System.out.println("translationY: " + translationY);
+                break;
+            case "Z":
+                translationZ += amount;
+                System.out.println("translationZ: " + translationZ);
+                break;
+            default:
+                break;
+        }
     }
 
     private void terminateApplication() {
@@ -218,16 +273,13 @@ public class Main {
 
     private void updateMatrices() {
         tree = new Matrix4f().identity();
-        tree.rotate((float) Math.toRadians(30), 0f, 0f, 0);
-
         view = new Matrix4f().identity();
         view.lookAt(
                 new Vector3f(0.0f, 0.0f, 7f),       //eye
                 new Vector3f(0, 0, 0),            //center
                 new Vector3f(0.0f, 2f, 0f)    //up
         );
-
-        proj = new Matrix4f().perspective(1, windowWidth/windowHeight, 3, -3);
+        proj = new Matrix4f().perspective(1, windowWidth / windowHeight, 3, -3);
     }
 
     private void calculateAspect() {
@@ -478,6 +530,7 @@ public class Main {
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
+        tree.setTranslation(translationX, translationY, translationZ);
         tree.rotate((float) Math.toRadians(rotatorX), 1f, 0f, 0f);
         tree.rotate((float) Math.toRadians(rotatorY), 0f, 1f, 0f);
         tree.rotate((float) Math.toRadians(rotatorZ), 0f, 0f, 1f);
