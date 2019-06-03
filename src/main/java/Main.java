@@ -62,7 +62,7 @@ public class Main {
 
     private long window;
     private int renderProgram;
-    private int geoProgram;
+    private int constructionProgram;
     private Matrix4f mvpModel;
     private Matrix4f proj;
     private Matrix4f view;
@@ -78,8 +78,8 @@ public class Main {
     private int numberOfVertices = 0;
     private int mybufferFeedback;
     private int renderVertex;
-    private int currentVertexArray;
-    private int currentFeedbackBuffer;
+    private int currentConstructionVertexArray;
+    private int currentConstructionBuffer;
     private int lastVertexArray;
     private int lastFeedbackBuffer;
     private int swapVertexArray;
@@ -111,8 +111,7 @@ public class Main {
         createSecondVertexArrayObject();
         createSecondVertexAttribAndPointers();
         setArrayAndBufferPointer();
-        iterationsLoop();
-        setCamera();
+        constructionLoop();
         gameLoop();
         terminateApplication();
     }
@@ -226,7 +225,6 @@ public class Main {
             translationX = 0;
             translationY = -2.3f;
             translationZ = 0;
-
             initApplication();
         }
     }
@@ -284,19 +282,15 @@ public class Main {
         proj = new Matrix4f().identity();
     }
 
-
-    private void setCamera() {
-    }
-
-    private void iterationsLoop() {
+    private void constructionLoop() {
         swapVertexArray = glGenVertexArrays();
         swapFeedbackBuffer = glGenBuffers();
         for (int i = 0; i < numberOfIterations; ++i) {
-            glBindVertexArray(currentVertexArray);
-            glUseProgram(geoProgram);
-            glBindBuffer(GL_ARRAY_BUFFER, currentFeedbackBuffer);
+            glBindVertexArray(currentConstructionVertexArray);
+            glUseProgram(constructionProgram);
+            glBindBuffer(GL_ARRAY_BUFFER, currentConstructionBuffer);
             glEnable(GL_RASTERIZER_DISCARD);
-            glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, currentFeedbackBuffer);
+            glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, currentConstructionBuffer);
             glBeginTransformFeedback(GL_TRIANGLES);
             glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
             glEndTransformFeedback();
@@ -304,27 +298,26 @@ public class Main {
             glFlush();
 
             swapVertexArrayAndBuffers();
-//            checkForErrors(glGetError());
         }
     }
 
 
     private void swapVertexArrayAndBuffers() {
-        swapVertexArray = currentVertexArray;
-        currentVertexArray = lastVertexArray;
+        swapVertexArray = currentConstructionVertexArray;
+        currentConstructionVertexArray = lastVertexArray;
         lastVertexArray = swapVertexArray;
 
-        swapFeedbackBuffer = currentFeedbackBuffer;
-        currentFeedbackBuffer = lastFeedbackBuffer;
+        swapFeedbackBuffer = currentConstructionBuffer;
+        currentConstructionBuffer = lastFeedbackBuffer;
         lastFeedbackBuffer = swapFeedbackBuffer;
 
     }
 
     private void setArrayAndBufferPointer() {
-        currentVertexArray = glGenVertexArrays();
-        currentVertexArray = vertexArr;
-        currentFeedbackBuffer = glGenBuffers();
-        currentFeedbackBuffer = mybufferFeedback;
+        currentConstructionVertexArray = glGenVertexArrays();
+        currentConstructionVertexArray = vertexArr;
+        currentConstructionBuffer = glGenBuffers();
+        currentConstructionBuffer = mybufferFeedback;
 
         lastVertexArray = glGenVertexArrays();
         lastVertexArray = renderVertex;
@@ -397,8 +390,7 @@ public class Main {
     }
 
     private void calculateNumberOfVertices(int iterations) {
-        int numberOfTriangles = (int) (4 * Math.pow(3, iterations) - 3);
-        numberOfVertices = numberOfTriangles * 3;
+        numberOfVertices = (int) (4 * Math.pow(3, iterations) - 3) * 3;
     }
 
 
@@ -427,9 +419,6 @@ public class Main {
         glfwSetWindowPos(window, (vidmode != null ? vidmode.width() : 0) / 2 - windowWidth / 2, (vidmode != null ? vidmode.height() : 0) / 2 - windowHeight / 2);
         glfwMakeContextCurrent(window);
 
-//        String renderer = glGetString(GL_RENDERER); /* get renderer string */
-//        String version = glGetString(GL_VERSION); /* version as a string */
-//        System.out.println("RENDERER: " + renderer + " // VERSION: " + version);
         createCapabilities();
         glfwShowWindow(window);
     }
@@ -439,10 +428,6 @@ public class Main {
                 new Vector4f(0.0f, 0.5f, -0.5f, 1.0f),
                 new Vector4f(-0.5f, -0.5f, -0.5f, 1.0f),
                 new Vector4f(0.5f, -0.5f, -0.5f, 1.0f)
-//                //vx vy vz l nx ny nz
-//                +0.0f, +0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
-//                -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f,
-//                +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 0.0f
         };
 
     }
@@ -502,27 +487,27 @@ public class Main {
         glAttachShader(renderProgram, renderFragmentShader);
         glLinkProgram(renderProgram);
 
-        geoProgram = glCreateProgram();
-        glAttachShader(geoProgram, geoVertexShader);
-        glAttachShader(geoProgram, geoGeometyShader);
+        constructionProgram = glCreateProgram();
+        glAttachShader(constructionProgram, geoVertexShader);
+        glAttachShader(constructionProgram, geoGeometyShader);
         CharSequence[] varyings = new CharSequence[]{"out_position", "out_length", "out_normal"};
-        glTransformFeedbackVaryings(geoProgram, varyings, GL_INTERLEAVED_ATTRIBS);
-        glLinkProgram(geoProgram);
+        glTransformFeedbackVaryings(constructionProgram, varyings, GL_INTERLEAVED_ATTRIBS);
+        glLinkProgram(constructionProgram);
 
     }
 
     private void createVertexAttribAndPointers() {
-        int pos = glGetAttribLocation(geoProgram, "position");
+        int pos = glGetAttribLocation(constructionProgram, "position");
 //        System.out.println("pos: " + pos);
         glEnableVertexAttribArray(pos);
         glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0);
 
-        int length = glGetAttribLocation(geoProgram, "length");
+        int length = glGetAttribLocation(constructionProgram, "length");
 //        System.out.println("length: " + length);
         glEnableVertexAttribArray(length);
         glVertexAttribPointer(length, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
-        int normal = glGetAttribLocation(geoProgram, "normal");
+        int normal = glGetAttribLocation(constructionProgram, "normal");
 //        System.out.println("normal:" + normal);
         glEnableVertexAttribArray(normal);
         glVertexAttribPointer(normal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
