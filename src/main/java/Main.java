@@ -63,7 +63,6 @@ public class Main {
     private Matrix4f mvpModel;
     private Matrix4f proj;
     private Matrix4f view;
-    private int sizeOfFloat = 4;
     private int vertexArr;
     private int myBufferTriangle;
     private int renderVertexShader;
@@ -90,7 +89,7 @@ public class Main {
     private boolean rotateZ = true;
 
 
-    public Main() {
+    private Main() {
         initializeWindow();
         printLegend();
         initApplication();
@@ -469,6 +468,7 @@ public class Main {
         int pos = glGetAttribLocation(program, "position");
 //        System.out.println("pos: " + pos);
         glEnableVertexAttribArray(pos);
+        int sizeOfFloat = 4;
         glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0);
 
         int length = glGetAttribLocation(program, "length");
