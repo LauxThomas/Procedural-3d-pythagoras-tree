@@ -13,77 +13,67 @@ out vec3 out_position;
 out float out_length;
 out vec3 out_normal;
 
-float scaleTriangle = 0.8f;
-float scaleLength = 0.7f;
+//shrinkfactor
+float shrinkFactor = 0.7f;
 
-void emitTriangle(vec3 v0, vec3 v1, vec3 v2, float l);
-void emitTriangleWithNormal( vec3 v0, vec3 v1, vec3 v2, float l, vec3 normal);
+void calculateTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength);
+void emitTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength, vec3 normal);
 
 void main() {
 
-    vec3 p[3];
-    p[0] = vertex[0].vposition;
-    p[1] = vertex[1].vposition;
-    p[2] = vertex[2].vposition;
-    float l = vertex[0].vlength;
+    vec3 triangleVertices[3];
+    triangleVertices[0] = vertex[0].vposition;
+    triangleVertices[1] = vertex[1].vposition;
+    triangleVertices[2] = vertex[2].vposition;
+    float extrudeLength = vertex[0].vlength;
 
-    if( l <= 0.f ) {
-        emitTriangleWithNormal( p[0], p[1], p[2], 0.0f, vertex[0].vnormal);
+    if (extrudeLength == 0.0f) {
+        //do not extrude:
+        emitTriangle(triangleVertices[0], triangleVertices[1], triangleVertices[2], 0.0f, vertex[0].vnormal);
     }
     else {
-        vec3 q[3];
-        vec3 t;
-        float length_next;
+        vec3 shrunkenTriangle[3];
+        vec3 tipOfTetraeder;
 
         //compute the vec and compute the normals and lenght:
-        vec3 a = p[1] - p[0];
-        vec3 b = p[2] - p[0];
-        vec3 n = cross(a, b);
-        n = normalize(n);
-        vec3 h = n * l;
-        vec3 c = (p[0]+p[1]+p[2])/3;
+        vec3 kath1 = triangleVertices[1] - triangleVertices[0];
+        vec3 kath2 = triangleVertices[2] - triangleVertices[0];
+        vec3 normal = normalize(cross(kath1, kath2));
+        vec3 heigth = normal * extrudeLength;
+        vec3 center = (triangleVertices[0]+triangleVertices[1]+triangleVertices[2])/3;
 
-        //compute q:
-        for(int i = 0; i < 3; i++) {
-            vec3 tmp = (p[i] - c) * scaleTriangle;
-            q[i] = c +  h + tmp;
+        for (int i = 0; i < 3; i++) {
+            shrunkenTriangle[i] = center +  heigth + ((triangleVertices[i] - center) * shrinkFactor);
         }
 
-        float topMantle = length(a)*0.2f;
-        t = c + h + n * topMantle;
+        float tetraederAngle = shrinkFactor/3*length(kath1);
+        tipOfTetraeder = center + heigth + normal * tetraederAngle;
 
-        //our next length should be lower
-        length_next = l * scaleLength;
-
-        //Generate the mantle
-        for( int i = 0; i < 3; i++) {
-            int j = (i + 1) % 3;
-            emitTriangle( p[i], q[j], q[i], 0.0f);
-            emitTriangle( p[i], p[j], q[j], 0.0f);
+        for (int i = 0; i < 3; i++) {
+            calculateTriangle(triangleVertices[i], shrunkenTriangle[(i + 1) % 3], shrunkenTriangle[i], 0.0f);
+            calculateTriangle(triangleVertices[i], triangleVertices[(i + 1) % 3], shrunkenTriangle[(i + 1) % 3], 0.0f);
         }
 
         //genrate top
-        for( int i = 0; i < 3; i++) {
-            int j = (i + 1) % 3;
-            emitTriangle( q[i], q[j], t, length_next);
+        for (int i = 0; i < 3; i++) {
+            calculateTriangle(shrunkenTriangle[i], shrunkenTriangle[(i + 1) % 3], tipOfTetraeder, extrudeLength * shrinkFactor);
         }
     }
 }
 
-void emitTriangleWithNormal( vec3 v0, vec3 v1, vec3 v2, float l, vec3 normal) {
-    out_length = l;
+void calculateTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength) {
+    emitTriangle(vertex1, vertex2, vertex3, extrudeLength, normalize(cross(vertex2-vertex1, vertex3-vertex1)));
+}
+
+void emitTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength, vec3 normal) {
+    out_length = extrudeLength;
     out_normal = normal;
-    out_position = v0;
+    out_position = vertex1;
     EmitVertex();
-    out_position = v1;
+    out_position = vertex2;
     EmitVertex();
-    out_position = v2;
+    out_position = vertex3;
     EmitVertex();
     EndPrimitive();
 }
 
-void emitTriangle( vec3 v0, vec3 v1, vec3 v2, float l) {
-
-    vec3 normal = normalize(cross(v1-v0, v2-v0));
-    emitTriangleWithNormal(v0, v1, v2, l, normal);
-}

@@ -4,6 +4,7 @@ import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWVidMode;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.charset.StandardCharsets;
@@ -54,29 +55,18 @@ import static org.lwjgl.opengl.GL40.glActiveTexture;
 import static org.lwjgl.opengl.GL40.glBufferSubData;
 import static org.lwjgl.opengl.GL40.glClear;
 import static org.lwjgl.opengl.GL40.glFlush;
-import static org.lwjgl.opengl.GL40.glGetError;
 import static org.lwjgl.opengl.GL40.glUniform1i;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
 
-    //<editor-fold desc="Attributes">
     private long window;
-    private int uniColor;
-    private float pulseColor = 1;
-    private boolean pulseUp = true;
-    private int[] elements;
     private int renderProgram;
     private int geoProgram;
     private Matrix4f tree;
     private Matrix4f proj;
     private Matrix4f view;
-    private int test = 0;
-    private boolean testUp = true;
-    private boolean rotateObject = true;
-    private int triangles = 3;
     private int sizeOfFloat = 4;
-    //    private float[] model;
     private int vertexArr;
     private int myBufferTriangle;
     private int renderVertexShader;
@@ -85,17 +75,9 @@ public class Main {
     private int renderFragmentShader;
     private int pos;
     private int normal;
-    private int colorAttrib;
-    private int texAttrib;
     private int length;
-    private FloatBuffer inputData;
-    private int inputVBO;
-    private int outputVBO;
-    private int feedbackObject;
-    private int queryObject;
     private CharSequence[] varyings;
-    //    private float[] vert2;
-    private Vector4f[] vert2;
+    private Vector4f[] model;
     private int numberOfIterations = 10;
     private int numberOfVertices = 0;
     private int numberOfTriangles = 0;
@@ -110,32 +92,30 @@ public class Main {
     private int lastFeedbackBuffer;
     private int swapVertexArray;
     private int swapFeedbackBuffer;
-    private float rotationY;
-    private float rotationX;
     private int windowWidth;
     private int windowHeight;
     private float aspect;
-    private Vector3f camaraPos;
-    private double rotatorX = 130;
-    private double rotatorY = 337;
-    private double rotatorZ = 337;
-    private float translationX = -0.8f;
-    private float translationY = -1.8f;
+    private double rotatorX = 265;
+    private double rotatorY = 0;
+    private double rotatorZ = 0;
+    private float translationX = 0;
+    private float translationY = -2.3f;
     private float translationZ = 0;
-    private float orbit = 0;
+    private boolean rotateZ = true;
+    private Font awtFont;
+
 
     public Main() {
-
         initializeWindow();
-        init();
+        initApplication();
     }
 
-    private void init() {
+    private void initApplication() {
+        printLegend();
         createAndCompileShaders();
         createProgrammAndLinkShaders();
         createModel();
         calculateNumberOfVertices(numberOfIterations);
-        System.out.println("NUMBER OF VERTICES: " + numberOfVertices);
         createArrayBuffer();
         createVertexArrayObject();
         createVertexAttribAndPointers();
@@ -150,20 +130,26 @@ public class Main {
         terminateApplication();
     }
 
+    private void printLegend() {
+        System.out.println("Controls: \n" +
+                "Move: " + "Arrow Keys\n" +
+                "Zoom: " + "+ / - (US LAYOUT: \"/\" / \"]\" or Numpad + / -)\n" +
+                "Rotating X: " + "W / S\n" +
+                "Rotating Y: " + "Pause: E / Unpause: Q\n" +
+                "Rotating Z: " + "A / D\n" +
+                "" + "\n" +
+                "Tree creation:" + "\n" +
+                "Change #Iterations: Keys 1 - 6. Currently: " + numberOfIterations + "  \n" +
+                "Reset so Default: Backspace");
+    }
+
 
     private void gameLoop() {
         while (!glfwWindowShouldClose(window)) {
             clearDisplay();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            double previous_seconds = glfwGetTime();
-            double current_seconds = glfwGetTime();
-            double elapsed_seconds = current_seconds - previous_seconds;
-            previous_seconds = current_seconds;
-
             glBindVertexArray(renderVertex);
             glUseProgram(renderProgram);
-
             glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
             glfwPollEvents();
             checkInputs();
@@ -172,32 +158,37 @@ public class Main {
             calculateView();
             calculateProjection();
             glfwSwapBuffers(window);
-
         }
 
     }
 
+
     private void checkInputs() {
-        if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE))
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            updateRotator("X", 1f);
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             updateRotator("X", -1f);
         }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            updateRotator("Y", 1f);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            updateRotator("X", 1f);
         }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
             updateRotator("Y", -1f);
         }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            updateRotator("Y", 1f);
+        }
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-            updateRotator("Z", 1f);
+            rotateZ = false;
         }
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-            updateRotator("Z", -1f);
+            rotateZ = true;
         }
+
+        if (rotateZ) {
+            updateRotator("Z", -0.3f);
+        }
+
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             updateTranslation("X", 0.1f);
         }
@@ -210,35 +201,46 @@ public class Main {
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
             updateTranslation("Y", -0.1f);
         }
-        if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS) {
             updateTranslation("Z", 0.1f);
         }
-        if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_SLASH) == GLFW_PRESS) {
             updateTranslation("Z", -0.1f);
         }
         if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
             numberOfIterations = 2;
-            init();
+            initApplication();
         }
         if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
             numberOfIterations = 4;
-            init();
+            initApplication();
         }
         if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
             numberOfIterations = 6;
-            init();
+            initApplication();
         }
         if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
             numberOfIterations = 8;
-            init();
+            initApplication();
         }
         if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
             numberOfIterations = 10;
-            init();
+            initApplication();
         }
-        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-            orbit++;
-            System.out.println("orbit: " + orbit);
+        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+            numberOfIterations = 12;
+            initApplication();
+        }
+        if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS) {
+            numberOfIterations = 10;
+            rotatorX = 265;
+            rotatorY = 0;
+            rotatorZ = 0;
+            translationX = 0;
+            translationY = -2.3f;
+            translationZ = 0;
+
+            initApplication();
         }
     }
 
@@ -247,17 +249,14 @@ public class Main {
             case "X":
                 rotatorX += amount;
                 rotatorX %= 360;
-                System.out.println("rotatorX: " + rotatorX);
                 break;
             case "Y":
                 rotatorY += amount;
                 rotatorY %= 360;
-                System.out.println("rotatorY: " + rotatorY);
                 break;
             case "Z":
                 rotatorZ += amount;
                 rotatorZ %= 360;
-                System.out.println("rotatorZ: " + rotatorZ);
                 break;
             default:
                 break;
@@ -269,15 +268,12 @@ public class Main {
         switch (axis) {
             case "X":
                 translationX += amount;
-                System.out.println("translationX: " + translationX);
                 break;
             case "Y":
                 translationY += amount;
-                System.out.println("translationY: " + translationY);
                 break;
             case "Z":
                 translationZ += amount;
-                System.out.println("translationZ: " + translationZ);
                 break;
             default:
                 break;
@@ -295,16 +291,9 @@ public class Main {
         System.exit(1);
     }
 
-
     private void updateMatrices() {
         tree = new Matrix4f().identity();
         view = new Matrix4f().identity();
-//        view.lookAt(
-//                new Vector3f(0.0f, 0.0f, 7f),       //eye
-//                new Vector3f(0, 0, 0),            //center
-//                new Vector3f(0.0f, 2f, 0f)    //up
-//        );
-//        proj = new Matrix4f().perspective(1, windowWidth / windowHeight, 3, -3);
         proj = new Matrix4f().identity();
     }
 
@@ -313,15 +302,11 @@ public class Main {
     }
 
     private void setCamera() {
-        camaraPos = new Vector3f(0.0f, 0.0f, 50.0f);
-        rotationX = 0.0f;
-        rotationY = 0.0f;
     }
 
     private void iterationsLoop() {
         swapVertexArray = glGenVertexArrays();
         swapFeedbackBuffer = glGenBuffers();
-        int error;
         for (int i = 0; i < numberOfIterations; ++i) {
             glBindVertexArray(currentVertexArray);
             glUseProgram(geoProgram);
@@ -335,10 +320,13 @@ public class Main {
             glFlush();
 
             swapVertexArrayAndBuffers();
-            error = glGetError();
-            if (error != 0) {
-                System.out.println("FEHLER: " + error);
-            }
+//            checkForErrors(glGetError());
+        }
+    }
+
+    private void checkForErrors(int glGetError) {
+        if (glGetError != 0) {
+            System.out.println("FEHLER: " + glGetError);
         }
     }
 
@@ -370,17 +358,17 @@ public class Main {
     private void createSecondVertexAttribAndPointers() {
 
         renderPos = glGetAttribLocation(renderProgram, "position");
-        System.out.println("renderpos: " + renderPos);
+//        System.out.println("renderpos: " + renderPos);
         glEnableVertexAttribArray(renderPos);
         glVertexAttribPointer(renderPos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
 
         renderLength = glGetAttribLocation(renderProgram, "length");
-        System.out.println("renderlength: " + renderLength);
+//        System.out.println("renderlength: " + renderLength);
         glEnableVertexAttribArray(renderLength);
         glVertexAttribPointer(renderLength, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
         renderNormal = glGetAttribLocation(renderProgram, "normal");
-        System.out.println("rendernormal: " + renderNormal);
+//        System.out.println("rendernormal: " + renderNormal);
         glEnableVertexAttribArray(renderNormal);
         glVertexAttribPointer(renderNormal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
 
@@ -405,7 +393,7 @@ public class Main {
     private void createTransformFeedbackBuffer() {
         mybufferFeedback = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, mybufferFeedback);
-        glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices * 50, GL_STATIC_READ);
+        glBufferData(GL_ARRAY_BUFFER, model.length * numberOfVertices * 50, GL_STATIC_READ);
     }
 
     private void createVertexArrayObject() {
@@ -417,13 +405,13 @@ public class Main {
     private void createArrayBuffer() {
         myBufferTriangle = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, myBufferTriangle);
-        glBufferData(GL_ARRAY_BUFFER, vert2.length * numberOfVertices * 50, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, model.length * numberOfVertices * 50, GL_STATIC_DRAW);
 
-        FloatBuffer verticeBuffer = BufferUtils.createFloatBuffer(vert2.length * 500);
+        FloatBuffer verticeBuffer = BufferUtils.createFloatBuffer(model.length * numberOfVertices);
         float[] temp = new float[]{
-                vert2[0].x, vert2[0].y, vert2[0].z, vert2[0].w, 0.0f, 1.0f, 0.0f,
-                vert2[1].x, vert2[1].y, vert2[1].z, vert2[1].w, 0.0f, 1.0f, 0.0f,
-                vert2[2].x, vert2[2].y, vert2[2].z, vert2[2].w, 0.0f, 1.0f, 0.0f
+                model[0].x, model[0].y, model[0].z, model[0].w, 0.0f, 1.0f, 0.0f,
+                model[1].x, model[1].y, model[1].z, model[1].w, 0.0f, 1.0f, 0.0f,
+                model[2].x, model[2].y, model[2].z, model[2].w, 0.0f, 1.0f, 0.0f
         };
         verticeBuffer.put(temp).flip();
         glBufferSubData(GL_ARRAY_BUFFER, 0, verticeBuffer);
@@ -445,7 +433,7 @@ public class Main {
         windowHeight = 768;
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         window = glfwCreateWindow(windowWidth, windowHeight, "Rekursiver Pythagoras Baum - Real-Time Rendering", NULL, NULL);
@@ -463,13 +451,12 @@ public class Main {
 //        String renderer = glGetString(GL_RENDERER); /* get renderer string */
 //        String version = glGetString(GL_VERSION); /* version as a string */
 //        System.out.println("RENDERER: " + renderer + " // VERSION: " + version);
-
         createCapabilities();
         glfwShowWindow(window);
     }
 
     private void createModel() {
-        vert2 = new Vector4f[]{
+        model = new Vector4f[]{
                 new Vector4f(0.0f, 0.5f, -0.5f, 1.0f),
                 new Vector4f(-0.5f, -0.5f, -0.5f, 1.0f),
                 new Vector4f(0.5f, -0.5f, -0.5f, 1.0f)
@@ -547,17 +534,17 @@ public class Main {
 
     private void createVertexAttribAndPointers() {
         pos = glGetAttribLocation(geoProgram, "position");
-        System.out.println("pos: " + pos);
+//        System.out.println("pos: " + pos);
         glEnableVertexAttribArray(pos);
         glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
 
         length = glGetAttribLocation(geoProgram, "length");
-        System.out.println("length: " + length);
+//        System.out.println("length: " + length);
         glEnableVertexAttribArray(length);
         glVertexAttribPointer(length, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
         normal = glGetAttribLocation(geoProgram, "normal");
-        System.out.println("normal:" + normal);
+//        System.out.println("normal:" + normal);
         glEnableVertexAttribArray(normal);
         glVertexAttribPointer(normal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
     }

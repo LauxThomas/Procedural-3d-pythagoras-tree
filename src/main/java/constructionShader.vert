@@ -14,9 +14,7 @@ out Vertex
 
 void main()
 {
-
     vertex.vposition = position;
     vertex.vlength = length;
     vertex.vnormal = normal;
-
 }
