@@ -4,12 +4,12 @@ import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWVidMode;
 
-import java.awt.*;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -63,7 +63,7 @@ public class Main {
     private long window;
     private int renderProgram;
     private int geoProgram;
-    private Matrix4f tree;
+    private Matrix4f mvpModel;
     private Matrix4f proj;
     private Matrix4f view;
     private int sizeOfFloat = 4;
@@ -73,28 +73,17 @@ public class Main {
     private int geoVertexShader;
     private int geoGeometyShader;
     private int renderFragmentShader;
-    private int pos;
-    private int normal;
-    private int length;
-    private CharSequence[] varyings;
     private Vector4f[] model;
     private int numberOfIterations = 10;
     private int numberOfVertices = 0;
-    private int numberOfTriangles = 0;
     private int mybufferFeedback;
     private int renderVertex;
-    private int renderPos;
-    private int renderLength;
-    private int renderNormal;
     private int currentVertexArray;
     private int currentFeedbackBuffer;
     private int lastVertexArray;
     private int lastFeedbackBuffer;
     private int swapVertexArray;
     private int swapFeedbackBuffer;
-    private int windowWidth;
-    private int windowHeight;
-    private float aspect;
     private double rotatorX = 265;
     private double rotatorY = 0;
     private double rotatorZ = 0;
@@ -102,16 +91,15 @@ public class Main {
     private float translationY = -2.3f;
     private float translationZ = 0;
     private boolean rotateZ = true;
-    private Font awtFont;
 
 
     public Main() {
         initializeWindow();
+        printLegend();
         initApplication();
     }
 
     private void initApplication() {
-        printLegend();
         createAndCompileShaders();
         createProgrammAndLinkShaders();
         createModel();
@@ -125,7 +113,6 @@ public class Main {
         setArrayAndBufferPointer();
         iterationsLoop();
         setCamera();
-        calculateAspect();
         gameLoop();
         terminateApplication();
     }
@@ -139,7 +126,7 @@ public class Main {
                 "Rotating Z: " + "A / D\n" +
                 "" + "\n" +
                 "Tree creation:" + "\n" +
-                "Change #Iterations: Keys 1 - 6. Currently: " + numberOfIterations + "  \n" +
+                "Change #Iterations: Keys 1 - 6 \n" +
                 "Reset so Default: Backspace");
     }
 
@@ -286,20 +273,17 @@ public class Main {
         // Terminate GLFW and free the error callback
         glfwTerminate();
         if (glfwSetErrorCallback(null) != null) {
-            glfwSetErrorCallback(null).free();
+            Objects.requireNonNull(glfwSetErrorCallback(null)).free();
         }
         System.exit(1);
     }
 
     private void updateMatrices() {
-        tree = new Matrix4f().identity();
+        mvpModel = new Matrix4f().identity();
         view = new Matrix4f().identity();
         proj = new Matrix4f().identity();
     }
 
-    private void calculateAspect() {
-        aspect = (float) windowWidth / (float) windowHeight;
-    }
 
     private void setCamera() {
     }
@@ -324,11 +308,6 @@ public class Main {
         }
     }
 
-    private void checkForErrors(int glGetError) {
-        if (glGetError != 0) {
-            System.out.println("FEHLER: " + glGetError);
-        }
-    }
 
     private void swapVertexArrayAndBuffers() {
         swapVertexArray = currentVertexArray;
@@ -357,17 +336,17 @@ public class Main {
 
     private void createSecondVertexAttribAndPointers() {
 
-        renderPos = glGetAttribLocation(renderProgram, "position");
+        int renderPos = glGetAttribLocation(renderProgram, "position");
 //        System.out.println("renderpos: " + renderPos);
         glEnableVertexAttribArray(renderPos);
-        glVertexAttribPointer(renderPos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
+        glVertexAttribPointer(renderPos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0);
 
-        renderLength = glGetAttribLocation(renderProgram, "length");
+        int renderLength = glGetAttribLocation(renderProgram, "length");
 //        System.out.println("renderlength: " + renderLength);
         glEnableVertexAttribArray(renderLength);
         glVertexAttribPointer(renderLength, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
-        renderNormal = glGetAttribLocation(renderProgram, "normal");
+        int renderNormal = glGetAttribLocation(renderProgram, "normal");
 //        System.out.println("rendernormal: " + renderNormal);
         glEnableVertexAttribArray(renderNormal);
         glVertexAttribPointer(renderNormal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
@@ -418,7 +397,7 @@ public class Main {
     }
 
     private void calculateNumberOfVertices(int iterations) {
-        numberOfTriangles = (int) (4 * Math.pow(3, iterations) - 3);
+        int numberOfTriangles = (int) (4 * Math.pow(3, iterations) - 3);
         numberOfVertices = numberOfTriangles * 3;
     }
 
@@ -429,8 +408,8 @@ public class Main {
             return;
         }
 
-        windowWidth = 1024;
-        windowHeight = 768;
+        int windowWidth = 1024;
+        int windowHeight = 768;
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -526,24 +505,24 @@ public class Main {
         geoProgram = glCreateProgram();
         glAttachShader(geoProgram, geoVertexShader);
         glAttachShader(geoProgram, geoGeometyShader);
-        varyings = new CharSequence[]{"out_position", "out_length", "out_normal"};
+        CharSequence[] varyings = new CharSequence[]{"out_position", "out_length", "out_normal"};
         glTransformFeedbackVaryings(geoProgram, varyings, GL_INTERLEAVED_ATTRIBS);
         glLinkProgram(geoProgram);
 
     }
 
     private void createVertexAttribAndPointers() {
-        pos = glGetAttribLocation(geoProgram, "position");
+        int pos = glGetAttribLocation(geoProgram, "position");
 //        System.out.println("pos: " + pos);
         glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0 * sizeOfFloat);
+        glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0);
 
-        length = glGetAttribLocation(geoProgram, "length");
+        int length = glGetAttribLocation(geoProgram, "length");
 //        System.out.println("length: " + length);
         glEnableVertexAttribArray(length);
         glVertexAttribPointer(length, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
-        normal = glGetAttribLocation(geoProgram, "normal");
+        int normal = glGetAttribLocation(geoProgram, "normal");
 //        System.out.println("normal:" + normal);
         glEnableVertexAttribArray(normal);
         glVertexAttribPointer(normal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
@@ -552,12 +531,12 @@ public class Main {
 
     private void calculateModel() {
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
-        tree.setTranslation(translationX, translationY, translationZ);
-        tree.rotate((float) Math.toRadians(rotatorX), 1f, 0f, 0f);
-        tree.rotate((float) Math.toRadians(rotatorY), 0f, 1f, 0f);
-        tree.rotate((float) Math.toRadians(rotatorZ), 0f, 0f, 1f);
+        mvpModel.setTranslation(translationX, translationY, translationZ);
+        mvpModel.rotate((float) Math.toRadians(rotatorX), 1f, 0f, 0f);
+        mvpModel.rotate((float) Math.toRadians(rotatorY), 0f, 1f, 0f);
+        mvpModel.rotate((float) Math.toRadians(rotatorZ), 0f, 0f, 1f);
 
-        tree.get(fb);
+        mvpModel.get(fb);
 
         int uniTrans = glGetUniformLocation(renderProgram, "model");
         glUniformMatrix4fv(uniTrans, false, fb);
@@ -565,7 +544,7 @@ public class Main {
 
     private void calculateView() {
         view = new Matrix4f().lookAt(
-                new Vector3f(0.0f, 2.0f, 7f),       //eye
+                new Vector3f(0.0f, 0.0f, 7f),       //eye
                 new Vector3f(0, 0, 0),            //center
                 new Vector3f(0.0f, 2f, 0f)    //up
         );
