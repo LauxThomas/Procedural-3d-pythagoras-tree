@@ -22,9 +22,9 @@ void emitTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength,
 void main() {
 
     vec3 triangleVertices[3];
-    triangleVertices[0] = vertex[0].vposition;
-    triangleVertices[1] = vertex[1].vposition;
-    triangleVertices[2] = vertex[2].vposition;
+    for (int i = 0; i < 3; i++) {
+        triangleVertices[i] = vertex[i].vposition;
+    }
     float extrudeLength = vertex[0].vlength;
 
     if (extrudeLength == 0.0f) {
@@ -35,7 +35,6 @@ void main() {
         vec3 shrunkenTriangle[3];
         vec3 tipOfTetraeder;
 
-        //compute the vec and compute the normals and lenght:
         vec3 kath1 = triangleVertices[1] - triangleVertices[0];
         vec3 kath2 = triangleVertices[2] - triangleVertices[0];
         vec3 normal = normalize(cross(kath1, kath2));
@@ -54,7 +53,6 @@ void main() {
             calculateTriangle(triangleVertices[i], triangleVertices[(i + 1) % 3], shrunkenTriangle[(i + 1) % 3], 0.0f);
         }
 
-        //genrate top
         for (int i = 0; i < 3; i++) {
             calculateTriangle(shrunkenTriangle[i], shrunkenTriangle[(i + 1) % 3], tipOfTetraeder, extrudeLength * shrinkFactor);
         }
