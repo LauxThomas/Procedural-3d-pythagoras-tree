@@ -4,10 +4,10 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices = 27) out;
 
 in Vertex{
-    vec3 vposition;
-    float vlength;
-    vec3 vnormal;
-}vertex[];
+    vec3 vertexPosition;
+    float vertexLength;
+    vec3 vertexNormal;
+}v[];
 
 out vec3 out_position;
 out float out_length;
@@ -23,13 +23,13 @@ void main() {
 
     vec3 triangleVertices[3];
     for (int i = 0; i < 3; i++) {
-        triangleVertices[i] = vertex[i].vposition;
+        triangleVertices[i] = v[i].vertexPosition;
     }
-    float extrudeLength = vertex[0].vlength;
+    float extrudeLength = v[0].vertexLength;
 
     if (extrudeLength == 0.0f) {
         //do not extrude:
-        emitTriangle(triangleVertices[0], triangleVertices[1], triangleVertices[2], 0.0f, vertex[0].vnormal);
+        emitTriangle(triangleVertices[0], triangleVertices[1], triangleVertices[2], 0.0f, v[0].vertexNormal);
     }
     else {
         vec3 shrunkenTriangle[3];
@@ -64,14 +64,18 @@ void calculateTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLe
 }
 
 void emitTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength, vec3 normal) {
+
     out_length = extrudeLength;
     out_normal = normal;
     out_position = vertex1;
     EmitVertex();
+
     out_position = vertex2;
     EmitVertex();
+
     out_position = vertex3;
     EmitVertex();
+
     EndPrimitive();
 }
 

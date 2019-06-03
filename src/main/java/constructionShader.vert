@@ -6,15 +6,15 @@ layout(location = 2) in vec3 normal;
 
 out Vertex
 {
-    vec3 vposition;
-    float vlength;
-    vec3 vnormal;
+    vec3 vertexPosition;
+    float vertexLength;
+    vec3 vertexNormal;
 }vertex;
 
 
 void main()
 {
-    vertex.vposition = position;
-    vertex.vlength = length;
-    vertex.vnormal = normal;
+    vertex.vertexPosition = position;
+    vertex.vertexLength = length;
+    vertex.vertexNormal = normal;
 }
