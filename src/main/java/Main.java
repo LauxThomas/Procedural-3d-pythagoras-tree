@@ -50,12 +50,9 @@ import static org.lwjgl.opengl.GL40.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL40.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL40.*;
 import static org.lwjgl.opengl.GL40.GL_STATIC_READ;
-import static org.lwjgl.opengl.GL40.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL40.glActiveTexture;
 import static org.lwjgl.opengl.GL40.glBufferSubData;
 import static org.lwjgl.opengl.GL40.glClear;
 import static org.lwjgl.opengl.GL40.glFlush;
-import static org.lwjgl.opengl.GL40.glUniform1i;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
@@ -106,10 +103,10 @@ public class Main {
         calculateNumberOfVertices(numberOfIterations);
         createArrayBuffer();
         createVertexArrayObject();
-        createVertexAttribAndPointers();
+        createVertexAttributesAndPointers(constructionProgram);
         createTransformFeedbackBuffer();
         createSecondVertexArrayObject();
-        createSecondVertexAttribAndPointers();
+        createVertexAttributesAndPointers(renderProgram);
         setArrayAndBufferPointer();
         constructionLoop();
         gameLoop();
@@ -327,34 +324,6 @@ public class Main {
 
     }
 
-    private void createSecondVertexAttribAndPointers() {
-
-        int renderPos = glGetAttribLocation(renderProgram, "position");
-//        System.out.println("renderpos: " + renderPos);
-        glEnableVertexAttribArray(renderPos);
-        glVertexAttribPointer(renderPos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0);
-
-        int renderLength = glGetAttribLocation(renderProgram, "length");
-//        System.out.println("renderlength: " + renderLength);
-        glEnableVertexAttribArray(renderLength);
-        glVertexAttribPointer(renderLength, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
-
-        int renderNormal = glGetAttribLocation(renderProgram, "normal");
-//        System.out.println("rendernormal: " + renderNormal);
-        glEnableVertexAttribArray(renderNormal);
-        glVertexAttribPointer(renderNormal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
-
-
-        //createTexture:
-        Texture texture = new Texture("treebark.jpg");
-        int texUnit = 0;
-        int texUniform = glGetUniformLocation(renderProgram, "tex");
-        glUniform1i(texUniform, texUnit);
-        glActiveTexture(GL_TEXTURE0 + 5);  //+5!!!
-        texture.bind();
-
-    }
-
     private void createSecondVertexArrayObject() {
         renderVertex = glGenVertexArrays();
         glBindVertexArray(renderVertex);
@@ -496,18 +465,18 @@ public class Main {
 
     }
 
-    private void createVertexAttribAndPointers() {
-        int pos = glGetAttribLocation(constructionProgram, "position");
+    private void createVertexAttributesAndPointers(int program) {
+        int pos = glGetAttribLocation(program, "position");
 //        System.out.println("pos: " + pos);
         glEnableVertexAttribArray(pos);
         glVertexAttribPointer(pos, 3, GL_FLOAT, false, 7 * sizeOfFloat, 0);
 
-        int length = glGetAttribLocation(constructionProgram, "length");
+        int length = glGetAttribLocation(program, "length");
 //        System.out.println("length: " + length);
         glEnableVertexAttribArray(length);
         glVertexAttribPointer(length, 1, GL_FLOAT, false, 7 * sizeOfFloat, 3 * sizeOfFloat);
 
-        int normal = glGetAttribLocation(constructionProgram, "normal");
+        int normal = glGetAttribLocation(program, "normal");
 //        System.out.println("normal:" + normal);
         glEnableVertexAttribArray(normal);
         glVertexAttribPointer(normal, 3, GL_FLOAT, false, 7 * sizeOfFloat, 4 * sizeOfFloat);
