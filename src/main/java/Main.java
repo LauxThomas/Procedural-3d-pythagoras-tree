@@ -189,24 +189,28 @@ public class Main {
         if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_SLASH) == GLFW_PRESS) {
             updateTranslation("Z", -0.1f);
         }
-        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS) {
             numberOfIterations = 2;
             initApplication();
         }
-        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS) {
             numberOfIterations = 4;
             initApplication();
         }
-        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_3) == GLFW_PRESS) {
             numberOfIterations = 6;
             initApplication();
         }
-        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS) {
             numberOfIterations = 8;
             initApplication();
         }
-        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_5) == GLFW_PRESS) {
             numberOfIterations = 10;
+            initApplication();
+        }
+        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS) {
+            numberOfIterations = 12;
             initApplication();
         }
         if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
@@ -359,6 +363,7 @@ public class Main {
 
     private void calculateNumberOfVertices(int iterations) {
         numberOfVertices = (int) (4 * Math.pow(3, iterations) - 3) * 3;
+        System.out.println("Number of Vertices: " + numberOfVertices);
     }
 
 
