@@ -408,10 +408,130 @@ public class Main {
 
     private void createAndCompileShaders() {
 
-        String renderVertexShaderSrc = createShader("renderShader.vert");
-        String renderFragmentShaderSrc = createShader("renderShader.frag");
-        String geoVertexShaderSrc = createShader("constructionShader.vert");
-        String geoGeometyShaderSrc = createShader("constructionShader.geom");
+//        String renderVertexShaderSrc = createShader("renderShader.vert");
+//        String renderFragmentShaderSrc = createShader("renderShader.frag");
+//        String geoVertexShaderSrc = createShader("constructionShader.vert");
+//        String geoGeometyShaderSrc = createShader("constructionShader.geom");
+        String renderVertexShaderSrc = "#version 420\n" +
+                "layout(location = 0) in vec3 position;\n" +
+                "layout(location = 1) in float length;\n" +
+                "uniform mat4 view;\n" +
+                "uniform mat4 proj;\n" +
+                "uniform mat4 model;\n" +
+                "out float renderAlpha;\n" +
+                "void main ()\n" +
+                "{\n" +
+                "    renderAlpha = length;\n" +
+                "    gl_Position = proj * view * model * vec4 (position, 1.0);\n" +
+                "}";
+        String renderFragmentShaderSrc = "#version 420\n" +
+                "in float renderAlpha;\n" +
+                "out vec4 FragColor;\n" +
+                "void main ()\n" +
+                "{\n" +
+                "    FragColor  = vec4 (0.1f, 0.1f, 0.1f, renderAlpha);\n" +
+                "}";
+        String constructionVertexShaderSrc = "#version 420\n" +
+                "\n" +
+                "layout(location = 0) in vec3 position;\n" +
+                "layout(location = 1) in float length;\n" +
+                "layout(location = 2) in vec3 normal;\n" +
+                "\n" +
+                "out Vertex\n" +
+                "{\n" +
+                "    vec3 vertexPosition;\n" +
+                "    float vertexLength;\n" +
+                "    vec3 vertexNormal;\n" +
+                "}vertex;\n" +
+                "\n" +
+                "\n" +
+                "void main()\n" +
+                "{\n" +
+                "    vertex.vertexPosition = position;\n" +
+                "    vertex.vertexLength = length;\n" +
+                "    vertex.vertexNormal = normal;\n" +
+                "}\n";
+        String constructionGeometyShaderSrc = "#version 420\n" +
+                "\n" +
+                "layout(triangles) in;\n" +
+                "layout(triangle_strip, max_vertices = 27) out;\n" +
+                "\n" +
+                "in Vertex{\n" +
+                "    vec3 vertexPosition;\n" +
+                "    float vertexLength;\n" +
+                "    vec3 vertexNormal;\n" +
+                "}v[];\n" +
+                "\n" +
+                "out vec3 out_position;\n" +
+                "out float out_length;\n" +
+                "out vec3 out_normal;\n" +
+                "\n" +
+                "//shrinkfactor\n" +
+                "float shrinkFactor = 0.7f;\n" +
+                "\n" +
+                "void calculateTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength);\n" +
+                "void emitTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength, vec3 normal);\n" +
+                "\n" +
+                "void main() {\n" +
+                "\n" +
+                "    vec3 triangleVertices[3];\n" +
+                "    for (int i = 0; i < 3; i++) {\n" +
+                "        triangleVertices[i] = v[i].vertexPosition;\n" +
+                "    }\n" +
+                "    float extrudeLength = v[0].vertexLength;\n" +
+                "\n" +
+                "    if (extrudeLength == 0.0f) {\n" +
+                "        //do not extrude:\n" +
+                "        emitTriangle(triangleVertices[0], triangleVertices[1], triangleVertices[2], 0.0f, v[0].vertexNormal);\n" +
+                "    }\n" +
+                "    else {\n" +
+                "        vec3 shrunkenTriangle[3];\n" +
+                "        vec3 tipOfTetraeder;\n" +
+                "\n" +
+                "        vec3 kath1 = triangleVertices[1] - triangleVertices[0];\n" +
+                "        vec3 kath2 = triangleVertices[2] - triangleVertices[0];\n" +
+                "        vec3 normal = normalize(cross(kath1, kath2));\n" +
+                "        vec3 heigth = normal * extrudeLength;\n" +
+                "        vec3 center = (triangleVertices[0]+triangleVertices[1]+triangleVertices[2])/3;\n" +
+                "\n" +
+                "        for (int i = 0; i < 3; i++) {\n" +
+                "            shrunkenTriangle[i] = center +  heigth + ((triangleVertices[i] - center) * shrinkFactor);\n" +
+                "        }\n" +
+                "\n" +
+                "        float tetraederAngle = shrinkFactor/3*length(kath1);\n" +
+                "        tipOfTetraeder = center + heigth + normal * tetraederAngle;\n" +
+                "\n" +
+                "        for (int i = 0; i < 3; i++) {\n" +
+                "            calculateTriangle(triangleVertices[i], shrunkenTriangle[(i + 1) % 3], shrunkenTriangle[i], 0.0f);\n" +
+                "            calculateTriangle(triangleVertices[i], triangleVertices[(i + 1) % 3], shrunkenTriangle[(i + 1) % 3], 0.0f);\n" +
+                "        }\n" +
+                "\n" +
+                "        for (int i = 0; i < 3; i++) {\n" +
+                "            calculateTriangle(shrunkenTriangle[i], shrunkenTriangle[(i + 1) % 3], tipOfTetraeder, extrudeLength * shrinkFactor);\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "void calculateTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength) {\n" +
+                "    emitTriangle(vertex1, vertex2, vertex3, extrudeLength, normalize(cross(vertex2-vertex1, vertex3-vertex1)));\n" +
+                "}\n" +
+                "\n" +
+                "void emitTriangle(vec3 vertex1, vec3 vertex2, vec3 vertex3, float extrudeLength, vec3 normal) {\n" +
+                "\n" +
+                "    out_length = extrudeLength;\n" +
+                "    out_normal = normal;\n" +
+                "    out_position = vertex1;\n" +
+                "    EmitVertex();\n" +
+                "\n" +
+                "    out_position = vertex2;\n" +
+                "    EmitVertex();\n" +
+                "\n" +
+                "    out_position = vertex3;\n" +
+                "    EmitVertex();\n" +
+                "\n" +
+                "    EndPrimitive();\n" +
+                "}\n" +
+                "\n";
 
         //Compile renderVertexShader:
         renderVertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -429,14 +549,14 @@ public class Main {
         }
         //Compile renderVertexShader:
         geoVertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(geoVertexShader, geoVertexShaderSrc);
+        glShaderSource(geoVertexShader, constructionVertexShaderSrc);
         glCompileShader(geoVertexShader);
         if (glGetShaderi(geoVertexShader, GL_COMPILE_STATUS) != GL_TRUE) {
             System.err.println("couldn't compile geoVertexShader: \n" + glGetShaderInfoLog(geoVertexShader, 512));
         }
         //Compile geoVertexShader:
         geoGeometyShader = glCreateShader(GL_GEOMETRY_SHADER);
-        glShaderSource(geoGeometyShader, geoGeometyShaderSrc);
+        glShaderSource(geoGeometyShader, constructionGeometyShaderSrc);
         glCompileShader(geoGeometyShader);
         if (glGetShaderi(geoGeometyShader, GL_COMPILE_STATUS) != GL_TRUE) {
             System.err.println("couldn't compile geoVertexShader: \n" + glGetShaderInfoLog(geoGeometyShader, 512));
@@ -444,9 +564,11 @@ public class Main {
     }
 
     private String createShader(String shaderName) {
+//        Path pathToFile = Paths.get(shaderName);
+//        System.out.println(pathToFile);
         try {
-//            System.out.println("src/main/java/" + shaderName);
-            return new String(Files.readAllBytes(Paths.get("src/main/java/" + shaderName)), StandardCharsets.UTF_8);
+            System.out.println("src/main/java/" + shaderName);
+            return new String(Files.readAllBytes(Paths.get("src/main/resources/" + shaderName)), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("couldn't create Shader " + shaderName);

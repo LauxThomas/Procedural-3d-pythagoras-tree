@@ -1,0 +1,34 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="realtime_rendering_main:jar2">
+    <output-path>$PROJECT_DIR$/out/artifacts/realtime_rendering_main_jar2</output-path>
+    <root id="archive" name="realtime_rendering_main.jar">
+      <element id="module-output" name="realtime_rendering_main" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-jawt/lwjgl-jawt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-jawt/lwjgl-jawt-javadoc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-jawt/lwjgl-jawt-sources.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-opengl/lwjgl-opengl.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-opengl/lwjgl-opengl-javadoc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-opengl/lwjgl-opengl-sources.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-opengl/lwjgl-opengl-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-opengl/lwjgl-opengl-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-opengl/lwjgl-opengl-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-assimp/lwjgl-assimp.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-assimp/lwjgl-assimp-javadoc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-assimp/lwjgl-assimp-sources.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-assimp/lwjgl-assimp-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-assimp/lwjgl-assimp-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-assimp/lwjgl-assimp-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-glfw/lwjgl-glfw-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-glfw/lwjgl-glfw-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-glfw/lwjgl-glfw-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl-glfw/lwjgl-glfw.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl/lwjgl.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl/lwjgl-javadoc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl/lwjgl-sources.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl/lwjgl-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl/lwjgl-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lwjgl-3.2.1/lwjgl/lwjgl-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/joml/joml-1.9.15.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
